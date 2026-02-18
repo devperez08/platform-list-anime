@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { type User } from "@supabase/supabase-js";
+import { signOut } from "@/app/login/actions";
 
 interface NavbarProps {
-  // Add props if needed
+  user: User | null;
 }
 
-export default function Navbar({}: NavbarProps) {
+export default function Navbar({ user }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -51,15 +53,17 @@ export default function Navbar({}: NavbarProps) {
           >
             New & Popular
           </Link>
-          <Link
-            href="/lists"
-            className="text-sm font-medium hover:text-primary transition-colors"
-          >
-            My Lists
-          </Link>
+          {user && (
+            <Link
+              href="/lists"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              My Lists
+            </Link>
+          )}
         </div>
 
-        {/* User Actions (Placeholder) */}
+        {/* User Actions */}
         <div className="flex items-center gap-4">
           <button className="btn btn-ghost btn-circle btn-sm">
             <svg
@@ -77,31 +81,40 @@ export default function Navbar({}: NavbarProps) {
               />
             </svg>
           </button>
-          <div className="dropdown dropdown-end">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-ghost btn-circle avatar placeholder"
-            >
-              <div className="bg-neutral text-neutral-content rounded-full w-8">
-                <span className="text-xs">U</span>
+          
+          {user ? (
+            <div className="dropdown dropdown-end">
+              <div
+                tabIndex={0}
+                role="button"
+                className="btn btn-ghost btn-circle avatar placeholder"
+              >
+                <div className="bg-neutral text-neutral-content rounded-full w-8">
+                  <span className="text-xs">{user.email?.charAt(0).toUpperCase()}</span>
+                </div>
               </div>
+              <ul
+                tabIndex={0}
+                className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
+              >
+                <li>
+                  <Link href="/profile">Profile</Link>
+                </li>
+                <li>
+                  <Link href="/settings">Settings</Link>
+                </li>
+                <li>
+                  <form action={signOut}>
+                    <button type="submit" className="w-full text-left">Logout</button>
+                  </form>
+                </li>
+              </ul>
             </div>
-            <ul
-              tabIndex={0}
-              className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
-            >
-              <li>
-                <a>Profile</a>
-              </li>
-              <li>
-                <a>Settings</a>
-              </li>
-              <li>
-                <a>Logout</a>
-              </li>
-            </ul>
-          </div>
+          ) : (
+            <Link href="/login" className="btn btn-primary btn-sm">
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </nav>
