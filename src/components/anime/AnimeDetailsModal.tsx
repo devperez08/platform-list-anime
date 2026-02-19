@@ -1,12 +1,13 @@
-
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { getLibraryItem, addToLibrary, removeFromLibrary, LibraryItem } from '@/services/library';
 
 interface AnimeDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   anime: {
+    mal_id: number;
     title: string;
     image: string;
     backdrop?: string;
@@ -19,6 +20,50 @@ interface AnimeDetailsModalProps {
 }
 
 export default function AnimeDetailsModal({ isOpen, onClose, anime }: AnimeDetailsModalProps) {
+  const [isInLibrary, setIsInLibrary] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && anime) {
+      checkLibraryStatus();
+    }
+  }, [isOpen, anime]);
+
+  const checkLibraryStatus = async () => {
+    if (!anime) return;
+    try {
+      const item = await getLibraryItem(anime.mal_id);
+      setIsInLibrary(!!item);
+    } catch (error) {
+      console.error('Error checking library status:', error);
+    }
+  };
+
+  const handleLibraryAction = async () => {
+    if (!anime) return;
+    setIsLoading(true);
+    try {
+      if (isInLibrary) {
+        await removeFromLibrary(anime.mal_id);
+        setIsInLibrary(false);
+      } else {
+        const item: LibraryItem = {
+          anime_id_jikan: anime.mal_id,
+          title: anime.title,
+          image_url: anime.image,
+          status: 'plan_to_watch',
+        };
+        await addToLibrary(item);
+        setIsInLibrary(true);
+      }
+    } catch (error) {
+      console.error('Library action error:', error);
+      alert('Debes iniciar sesión para guardar animes en tu lista.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!isOpen || !anime) return null;
 
   return (
@@ -77,8 +122,18 @@ export default function AnimeDetailsModal({ isOpen, onClose, anime }: AnimeDetai
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <button className="btn btn-primary btn-lg rounded-full px-10 font-bold shadow-xl shadow-primary/20">
-                + Añadir a mi Lista
+              <button 
+                onClick={handleLibraryAction}
+                disabled={isLoading}
+                className={`btn ${isInLibrary ? 'btn-outline text-success border-success/50 hover:bg-success/10' : 'btn-primary'} btn-lg rounded-full px-10 font-bold shadow-xl`}
+              >
+                {isLoading ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : isInLibrary ? (
+                  '✓ En mi Lista'
+                ) : (
+                  '+ Añadir a mi Lista'
+                )}
               </button>
               <button className="btn btn-outline btn-lg rounded-full px-10 text-white border-white/20 hover:bg-white/5">
                 Ver Ahora

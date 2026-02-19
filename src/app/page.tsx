@@ -1,50 +1,45 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AnimeCard from '@/components/anime/AnimeCard';
 import AnimeDetailsModal from '@/components/anime/AnimeDetailsModal';
 
+import { getTopAnime, JikanAnime } from '@/services/jikan';
+
 export default function Home() {
   const [selectedAnime, setSelectedAnime] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [trendingAnime, setTrendingAnime] = useState<JikanAnime[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const sampleAnimes = [
-    {
-      id: 1,
-      title: "Solo Leveling",
-      image: "/assets/images/poster.png",
-      score: "9.5",
-      episodes: "12",
-      status: "Finalizado",
-      genres: ["Acción", "Aventura", "Fantasía"],
-      synopsis: "En un mundo donde los cazadores, humanos que poseen habilidades mágicas, deben luchar contra monstruos mortales para proteger a la raza humana de una aniquilación segura, un cazador notoriamente débil llamado Sung Jinwoo se encuentra en una lucha interminable por la supervivencia."
-    },
-    {
-      id: 2,
-      title: "Jujutsu Kaisen",
-      image: "https://cdn.myanimelist.net/images/anime/1171/109222.jpg",
-      score: "9.2",
-      episodes: "24",
-      status: "Emisión",
-      genres: ["Acción", "Sobrenatural"],
-      synopsis: "Un estudiante de secundaria con una fuerza física extraordinaria se une a una organización secreta de hechiceros para combatir una maldición que se ha apoderado de su cuerpo."
-    },
-    {
-      id: 3,
-      title: "Attack on Titan",
-      image: "https://cdn.myanimelist.net/images/anime/10/47347.jpg",
-      score: "9.8",
-      episodes: "75",
-      status: "Finalizado",
-      genres: ["Acción", "Drama", "Militar"],
-      synopsis: "La humanidad vive en ciudades rodeadas de enormes muros debido a los Titanes, gigantescas criaturas humanoides que devoran humanos sin razón aparente."
-    }
-  ];
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const res = await getTopAnime();
+        setTrendingAnime(res.data);
+      } catch (error) {
+        console.error('Error fetching trending anime:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTrending();
+  }, []);
 
-  const handleOpenModal = (anime: any) => {
-    setSelectedAnime(anime);
+  const handleOpenModal = (anime: JikanAnime) => {
+    setSelectedAnime({
+      mal_id: anime.mal_id,
+      title: anime.title,
+      image: anime.images.webp.large_image_url,
+      backdrop: anime.images.webp.large_image_url, // Jikan doesn't provide backdrops easily, use poster for now
+      synopsis: anime.synopsis || "Sinopsis no disponible.",
+      score: anime.score?.toString() || "N/A",
+      episodes: anime.episodes?.toString() || "??",
+      status: anime.status,
+      genres: [] // We could map anime.genres if needed
+    });
     setIsModalOpen(true);
   };
 
@@ -56,7 +51,7 @@ export default function Home() {
         <div 
           className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 scale-105"
           style={{ 
-            backgroundImage: "url('/assets/images/lanscape.png')",
+            backgroundImage: trendingAnime[0] ? `url(${trendingAnime[0].images.webp.large_image_url})` : "url('/assets/images/lanscape.png')",
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-black/20" />
@@ -73,15 +68,15 @@ export default function Home() {
             </div>
             
             <h1 className="text-7xl md:text-9xl font-black text-white mb-6 tracking-tighter italic uppercase">
-              EPINEKO
+              {trendingAnime[0]?.title || "EPINEKO"}
             </h1>
-            <p className="text-xl md:text-2xl text-zinc-300 mb-10 max-w-xl leading-relaxed font-light">
-              Descubre un universo de historias. Tu próxima aventura anime comienza con un solo clic. 
+            <p className="text-xl md:text-2xl text-zinc-300 mb-10 max-w-xl leading-relaxed font-light line-clamp-2">
+              {trendingAnime[0]?.synopsis || "Descubre un universo de historias. Tu próxima aventura anime comienza con un solo clic."}
             </p>
             
             <div className="flex flex-wrap gap-5">
               <button 
-                onClick={() => handleOpenModal(sampleAnimes[0])}
+                onClick={() => trendingAnime[0] && handleOpenModal(trendingAnime[0])}
                 className="btn btn-primary btn-lg rounded-full px-10 shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all font-black text-lg"
               >
                 VER DETALLES
@@ -112,33 +107,21 @@ export default function Home() {
           </div>
           
           <div className="flex gap-6 overflow-x-auto pb-10 no-scrollbar snap-x">
-            {sampleAnimes.map((anime) => (
-              <AnimeCard 
-                key={anime.id}
-                image={anime.image}
-                title={anime.title}
-                score={anime.score}
-                onClick={() => handleOpenModal(anime)}
-              />
-            ))}
-            {/* Repeat items for visual fullness */}
-            {[4, 5, 6, 7].map((i) => (
-              <AnimeCard 
-                key={i}
-                image={`https://placehold.co/400x600/18181b/ffffff?text=Anime+${i}`}
-                title={`Próximamente ${i}`}
-                score={`9.${i}`}
-                onClick={() => handleOpenModal({
-                  title: `Próximamente ${i}`,
-                  image: `https://placehold.co/400x600/18181b/ffffff?text=Anime+${i}`,
-                  score: `9.${i}`,
-                  episodes: "??",
-                  status: "Próximamente",
-                  genres: ["Desconocido"],
-                  synopsis: "Información próximamente disponible..."
-                })}
-              />
-            ))}
+            {isLoading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex-none w-44 md:w-56 aspect-[2/3] bg-zinc-900 animate-pulse rounded-2xl" />
+              ))
+            ) : (
+              trendingAnime.map((anime) => (
+                <AnimeCard 
+                  key={anime.mal_id}
+                  image={anime.images.webp.large_image_url}
+                  title={anime.title}
+                  score={anime.score?.toString()}
+                  onClick={() => handleOpenModal(anime)}
+                />
+              ))
+            )}
           </div>
         </section>
 
