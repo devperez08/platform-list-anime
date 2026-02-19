@@ -64,3 +64,7 @@ export const searchAnime = async (query: string, page = 1): Promise<JikanRespons
 export const getAnimeById = async (id: number): Promise<JikanResponse<JikanAnime>> => {
   return jikanFetch<JikanResponse<JikanAnime>>(`/anime/${id}`);
 };
+
+export const getAnimeCharacters = async (id: number): Promise<JikanResponse<any[]>> => {
+  return jikanFetch<JikanResponse<any[]>>(`/anime/${id}/characters`);
+};

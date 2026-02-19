@@ -3,15 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { getLibrary, LibraryItem } from '@/services/library';
 import AnimeCard from '@/components/anime/AnimeCard';
-import AnimeDetailsModal from '@/components/anime/AnimeDetailsModal';
+import Link from 'next/link';
 import { getAnimeById } from '@/services/jikan';
 
 export default function LibraryPage() {
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedAnime, setSelectedAnime] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   useEffect(() => {
     fetchLibrary();
   }, []);
@@ -24,29 +21,6 @@ export default function LibraryPage() {
       console.error('Error fetching library:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleOpenModal = async (item: LibraryItem) => {
-    // We need more details than what's in the library table for the modal
-    // So we fetch from Jikan
-    try {
-      const res = await getAnimeById(item.anime_id_jikan);
-      const anime = res.data;
-      setSelectedAnime({
-        mal_id: anime.mal_id,
-        title: anime.title,
-        image: anime.images.webp.large_image_url,
-        backdrop: anime.images.webp.large_image_url,
-        synopsis: anime.synopsis || "Sinopsis no disponible.",
-        score: anime.score?.toString() || "N/A",
-        episodes: anime.episodes?.toString() || "??",
-        status: anime.status,
-        genres: []
-      });
-      setIsModalOpen(true);
-    } catch (error) {
-      console.error('Error fetching anime details:', error);
     }
   };
 
@@ -69,13 +43,14 @@ export default function LibraryPage() {
         ) : items.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             {items.map((item) => (
-              <AnimeCard 
-                key={item.anime_id_jikan}
-                image={item.image_url || ''}
-                title={item.title}
-                score={item.score?.toString()}
-                onClick={() => handleOpenModal(item)}
-              />
+              <Link key={item.anime_id_jikan} href={`/anime/${item.anime_id_jikan}`}>
+                <AnimeCard 
+                  mal_id={item.anime_id_jikan}
+                  image={item.image_url || ''}
+                  title={item.title}
+                  score={item.score?.toString()}
+                />
+              </Link>
             ))}
           </div>
         ) : (
@@ -95,15 +70,6 @@ export default function LibraryPage() {
           </div>
         )}
       </div>
-
-      <AnimeDetailsModal 
-        isOpen={isModalOpen} 
-        onClose={() => {
-          setIsModalOpen(false);
-          fetchLibrary(); // Refresh library in case something was removed
-        }} 
-        anime={selectedAnime} 
-      />
     </main>
   );
 }

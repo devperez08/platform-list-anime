@@ -9,8 +9,6 @@ import AnimeDetailsModal from '@/components/anime/AnimeDetailsModal';
 import { getTopAnime, JikanAnime } from '@/services/jikan';
 
 export default function Home() {
-  const [selectedAnime, setSelectedAnime] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [trendingAnime, setTrendingAnime] = useState<JikanAnime[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,21 +25,6 @@ export default function Home() {
     };
     fetchTrending();
   }, []);
-
-  const handleOpenModal = (anime: JikanAnime) => {
-    setSelectedAnime({
-      mal_id: anime.mal_id,
-      title: anime.title,
-      image: anime.images.webp.large_image_url,
-      backdrop: anime.images.webp.large_image_url, // Jikan doesn't provide backdrops easily, use poster for now
-      synopsis: anime.synopsis || "Sinopsis no disponible.",
-      score: anime.score?.toString() || "N/A",
-      episodes: anime.episodes?.toString() || "??",
-      status: anime.status,
-      genres: [] // We could map anime.genres if needed
-    });
-    setIsModalOpen(true);
-  };
 
   return (
     <main className="min-h-screen bg-zinc-950">
@@ -75,12 +58,14 @@ export default function Home() {
             </p>
             
             <div className="flex flex-wrap gap-5">
-              <button 
-                onClick={() => trendingAnime[0] && handleOpenModal(trendingAnime[0])}
-                className="btn btn-primary btn-lg rounded-full px-10 shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all font-black text-lg"
-              >
-                VER DETALLES
-              </button>
+              {trendingAnime[0] && (
+                <Link 
+                  href={`/anime/${trendingAnime[0].mal_id}`}
+                  className="btn btn-primary btn-lg rounded-full px-10 shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all font-black text-lg"
+                >
+                  VER DETALLES
+                </Link>
+              )}
               <button className="btn btn-ghost btn-lg rounded-full px-10 border-white/10 hover:bg-white/5 text-white backdrop-blur-md font-bold">
                 EXPLORAR TODO
               </button>
@@ -113,13 +98,14 @@ export default function Home() {
               ))
             ) : (
               trendingAnime.map((anime) => (
-                <AnimeCard 
-                  key={anime.mal_id}
-                  image={anime.images.webp.large_image_url}
-                  title={anime.title}
-                  score={anime.score?.toString()}
-                  onClick={() => handleOpenModal(anime)}
-                />
+                <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`}>
+                  <AnimeCard 
+                    mal_id={anime.mal_id}
+                    image={anime.images.webp.large_image_url}
+                    title={anime.title}
+                    score={anime.score?.toString()}
+                  />
+                </Link>
               ))
             )}
           </div>
@@ -154,13 +140,6 @@ export default function Home() {
         </section>
 
       </div>
-
-      {/* Details Modal */}
-      <AnimeDetailsModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        anime={selectedAnime} 
-      />
 
       <style jsx>{`
         .no-scrollbar::-webkit-scrollbar {

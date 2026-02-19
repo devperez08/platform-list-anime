@@ -135,9 +135,6 @@ export default function AnimeDetailsModal({ isOpen, onClose, anime }: AnimeDetai
                   '+ Añadir a mi Lista'
                 )}
               </button>
-              <button className="btn btn-outline btn-lg rounded-full px-10 text-white border-white/20 hover:bg-white/5">
-                Ver Ahora
-              </button>
             </div>
           </div>
         </div>
