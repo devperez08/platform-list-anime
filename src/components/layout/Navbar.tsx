@@ -27,82 +27,96 @@ export default function Navbar({ user }: NavbarProps) {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ease-in-out ${
         scrolled
-          ? "bg-zinc-950/80 backdrop-blur-lg shadow-2xl py-3 border-b border-white/5"
-          : "bg-gradient-to-b from-black/80 to-transparent py-5"
+          ? "bg-zinc-950/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] py-3 border-b border-white/5"
+          : "bg-gradient-to-b from-black/90 via-black/40 to-transparent py-5"
       }`}
     >
-      <div className="container mx-auto px-4 flex justify-between items-center">
+      <div className="container mx-auto px-6 flex justify-between items-center">
         {/* Logo */}
-        <Link href="/" className="text-2xl font-bold tracking-tight group">
-          <span className="text-primary group-hover:text-primary/80 transition-colors">Epi</span>
-          <span className="text-white group-hover:text-zinc-200 transition-colors">Neko</span>
+        <Link href="/" className="text-2xl font-black tracking-tighter group flex items-center italic">
+          <span className="text-primary group-hover:text-primary/80 transition-colors">EPI</span>
+          <span className="text-white group-hover:text-zinc-200 transition-colors">NEKO</span>
         </Link>
 
         {/* Navigation Links (Desktop) */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-8">
           <Link
             href="/"
-            className="text-xs font-black text-zinc-100 hover:text-primary transition-colors uppercase italic tracking-widest px-2 py-1"
+            className="text-[10px] font-black text-zinc-400 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
           >
             Inicio
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
           </Link>
           <Link
             href="/popular"
-            className="text-xs font-black text-zinc-100 hover:text-primary transition-colors uppercase italic tracking-widest px-2 py-1"
+            className="text-[10px] font-black text-zinc-400 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
           >
             Tendencias
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
           </Link>
           {user && (
             <Link
               href="/library"
-              className="text-xs font-black text-zinc-100 hover:text-primary transition-colors uppercase italic tracking-widest px-2 py-1"
+              className="text-[10px] font-black text-zinc-400 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
             >
               Mi Lista
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
             </Link>
           )}
         </div>
 
         {/* User Actions */}
-        <div className="flex items-center gap-4">
-          <SearchBar />
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="hidden sm:block">
+            <SearchBar />
+          </div>
 
           {user ? (
             <div className="dropdown dropdown-end">
               <div
                 tabIndex={0}
                 role="button"
-                className="btn btn-ghost btn-circle avatar placeholder"
+                className="btn btn-ghost btn-circle avatar border border-white/5 hover:border-primary/50 transition-all p-0.5"
               >
-                <div className="bg-neutral text-neutral-content rounded-full w-8">
-                  <span className="text-xs">
+                <div className="bg-zinc-800 text-white rounded-full w-full h-full flex items-center justify-center overflow-hidden">
+                  <span className="text-xs font-black italic">
                     {user.email?.charAt(0).toUpperCase()}
                   </span>
                 </div>
               </div>
               <ul
                 tabIndex={0}
-                className="mt-3 z-[1] p-2 shadow-2xl menu menu-sm dropdown-content bg-zinc-900 border border-white/10 rounded-2xl w-52 text-white"
+                className="mt-4 z-[110] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.8)] menu menu-sm dropdown-content bg-zinc-900 border border-white/10 rounded-2xl w-60 text-white animate-in fade-in slide-in-from-top-2 duration-200"
               >
+                <li className="menu-title px-4 py-2 text-zinc-500 text-[10px] uppercase tracking-widest font-black">Cuenta</li>
                 <li>
-                  <Link href="/profile" className="hover:text-primary transition-colors">Perfil</Link>
+                  <Link href="/profile" className="flex items-center gap-3 py-3 hover:bg-white/5 rounded-xl transition-colors group">
+                    <span className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-primary/20 group-hover:text-primary transition-colors">👤</span>
+                    <span className="font-bold">Perfil</span>
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/settings" className="hover:text-primary transition-colors">Ajustes</Link>
+                  <Link href="/settings" className="flex items-center gap-3 py-3 hover:bg-white/5 rounded-xl transition-colors group">
+                    <span className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-primary/20 group-hover:text-primary transition-colors">⚙️</span>
+                    <span className="font-bold">Ajustes</span>
+                  </Link>
                 </li>
+                <div className="h-px bg-white/5 my-2 mx-2"></div>
                 <li>
-                  <form action={signOut}>
-                    <button type="submit" className="w-full text-left hover:text-red-500 transition-colors">
-                      Cerrar Sesión
+                  <form action={signOut} className="w-full">
+                    <button type="submit" className="w-full flex items-center gap-3 py-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors font-bold">
+                       <span className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">🚪</span>
+                       Cerrar Sesión
                     </button>
                   </form>
                 </li>
               </ul>
             </div>
           ) : (
-            <Link href="/login" className="btn btn-primary btn-sm">
-              Login
+            <Link href="/login" className="btn btn-primary btn-sm rounded-full px-6 font-black italic tracking-tighter shadow-lg shadow-primary/20">
+              LOGIN
             </Link>
           )}
         </div>
