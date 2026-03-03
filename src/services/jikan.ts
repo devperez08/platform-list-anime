@@ -40,8 +40,10 @@ export interface JikanResponse<T> {
 
 const JIKAN_API_BASE = 'https://api.jikan.moe/v4';
 
-async function jikanFetch<T>(endpoint: string): Promise<T> {
-  const response = await fetch(`${JIKAN_API_BASE}${endpoint}`);
+async function jikanFetch<T>(endpoint: string, revalidate = 3600): Promise<T> {
+  const response = await fetch(`${JIKAN_API_BASE}${endpoint}`, {
+    next: { revalidate: revalidate }
+  });
 
   if (!response.ok) {
     if (response.status === 429) {
@@ -54,19 +56,19 @@ async function jikanFetch<T>(endpoint: string): Promise<T> {
 }
 
 export const getTopAnime = async (page = 1): Promise<JikanResponse<JikanAnime[]>> => {
-  return jikanFetch<JikanResponse<JikanAnime[]>>(`/top/anime?page=${page}`);
+  return jikanFetch<JikanResponse<JikanAnime[]>>(`/top/anime?page=${page}`, 3600); // 1 hour cache
 };
 
 export const searchAnime = async (query: string, page = 1): Promise<JikanResponse<JikanAnime[]>> => {
-  return jikanFetch<JikanResponse<JikanAnime[]>>(`/anime?q=${encodeURIComponent(query)}&page=${page}`);
+  return jikanFetch<JikanResponse<JikanAnime[]>>(`/anime?q=${encodeURIComponent(query)}&page=${page}`, 3600);
 };
 
 export const getAnimeById = async (id: number): Promise<JikanResponse<JikanAnime>> => {
-  return jikanFetch<JikanResponse<JikanAnime>>(`/anime/${id}`);
+  return jikanFetch<JikanResponse<JikanAnime>>(`/anime/${id}`, 86400); // 24 hours cache for specific anime
 };
 
 export const getAnimeCharacters = async (id: number): Promise<JikanResponse<any[]>> => {
-  return jikanFetch<JikanResponse<any[]>>(`/anime/${id}/characters`);
+  return jikanFetch<JikanResponse<any[]>>(`/anime/${id}/characters`, 86400);
 };
 
 export interface JikanEpisode {
@@ -83,5 +85,5 @@ export interface JikanEpisode {
 }
 
 export const getAnimeEpisodes = async (id: number, page = 1): Promise<JikanResponse<JikanEpisode[]>> => {
-  return jikanFetch<JikanResponse<JikanEpisode[]>>(`/anime/${id}/episodes?page=${page}`);
+  return jikanFetch<JikanResponse<JikanEpisode[]>>(`/anime/${id}/episodes?page=${page}`, 86400);
 };
