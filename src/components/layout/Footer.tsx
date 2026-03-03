@@ -9,9 +9,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Logo and About */}
           <div className="md:col-span-2 space-y-6">
-            <Link href="/" className="text-3xl font-black tracking-tighter italic flex items-center group">
-              <span className="text-primary group-hover:text-primary/80 transition-colors">EPI</span>
-              <span className="text-white group-hover:text-zinc-300 transition-colors">NEKO</span>
+            <Link href="/" className="group inline-block">
+              <div className="bg-white/5 border border-white/10 p-2 rounded-3xl shadow-2xl backdrop-blur-sm transition-all group-hover:border-primary/40 group-hover:bg-white/10">
+                <img 
+                  src="/assets/images/logo.jpeg" 
+                  alt="EPINEKO Logo" 
+                  className="h-16 w-auto rounded-2xl object-contain transition-transform group-hover:scale-105" 
+                />
+              </div>
             </Link>
             <p className="text-zinc-500 max-w-sm leading-relaxed font-medium">
               Tu portal definitivo para descubrir, seguir y organizar tu pasión por el anime. 

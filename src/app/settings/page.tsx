@@ -102,8 +102,8 @@ export default function SettingsPage() {
     <main className="min-h-screen bg-zinc-950 pt-32 pb-20">
       <div className="container mx-auto px-4 max-w-3xl">
         <div className="mb-10">
-          <Link href="/profile" className="text-primary hover:text-white transition-colors text-sm font-bold flex items-center gap-2 mb-4 group">
-             <span className="group-hover:-translate-x-1 transition-transform">←</span> Volver al perfil
+          <Link href="/profile" className="bg-zinc-800 hover:bg-zinc-700 text-white transition-all text-xs font-black flex items-center gap-2 mb-6 group px-5 py-2.5 rounded-full w-fit border border-white/10 shadow-lg italic uppercase tracking-wider">
+             <span className="group-hover:-translate-x-1 transition-transform text-primary">←</span> Volver al perfil
           </Link>
           <h1 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter">AJUSTES DE CUENTA</h1>
           <p className="text-zinc-500 mt-2">Personaliza tu experiencia en EpiNeko</p>
@@ -114,19 +114,6 @@ export default function SettingsPage() {
             <h2 className="text-xl font-bold text-white mb-6">Información del Perfil</h2>
             
             <div className="space-y-4">
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text text-zinc-400 font-bold uppercase tracking-widest text-xs">Nombre Completo</span>
-                </label>
-                <input 
-                  type="text" 
-                  placeholder="Tu nombre real" 
-                  className="input input-bordered bg-zinc-950 border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary rounded-xl" 
-                  value={fullname}
-                  onChange={(e) => setFullname(e.target.value)}
-                />
-              </div>
-
               <div className="form-control w-full">
                 <label className="label">
                   <span className="label-text text-zinc-400 font-bold uppercase tracking-widest text-xs">Nombre de Usuario</span>
@@ -141,32 +128,6 @@ export default function SettingsPage() {
                 <label className="label">
                   <span className="label-text-alt text-zinc-500 italic">Este es tu identificador público único.</span>
                 </label>
-              </div>
-
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text text-zinc-400 font-bold uppercase tracking-widest text-xs">Avatar URL</span>
-                </label>
-                <input 
-                  type="text" 
-                  placeholder="https://ejemplo.com/mi-foto.jpg" 
-                  className="input input-bordered bg-zinc-950 border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary rounded-xl" 
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                />
-              </div>
-
-              <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text text-zinc-400 font-bold uppercase tracking-widest text-xs">Sitio Web</span>
-                </label>
-                <input 
-                  type="text" 
-                  placeholder="https://misitio.com" 
-                  className="input input-bordered bg-zinc-950 border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary rounded-xl" 
-                  value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
-                />
               </div>
             </div>
           </section>
@@ -200,9 +161,9 @@ export default function SettingsPage() {
              <button 
               onClick={updateProfile}
               disabled={saving}
-              className="btn btn-primary px-10 rounded-full font-bold shadow-lg shadow-primary/20"
+              className="btn btn-primary btn-lg px-16 rounded-full font-black italic shadow-2xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-white uppercase tracking-widest border-2 border-white/10"
              >
-                {saving ? 'Guardando...' : 'Guardar Cambios'}
+                {saving ? 'Guardando...' : 'GUARDAR CAMBIOS'}
              </button>
           </div>
         </div>

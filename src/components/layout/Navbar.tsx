@@ -35,9 +35,14 @@ export default function Navbar({ user }: NavbarProps) {
     >
       <div className="container mx-auto px-6 flex justify-between items-center">
         {/* Logo */}
-        <Link href="/" className="text-2xl font-black tracking-tighter group flex items-center italic">
-          <span className="text-primary group-hover:text-primary/80 transition-colors">EPI</span>
-          <span className="text-white group-hover:text-zinc-200 transition-colors">NEKO</span>
+        <Link href="/" className="group flex items-center">
+          <div className="bg-white/5 border border-white/10 p-1.5 rounded-2xl shadow-xl backdrop-blur-sm transition-all group-hover:border-primary/40 group-hover:bg-white/10">
+            <img 
+              src="/assets/images/logo.jpeg" 
+              alt="EPINEKO Logo" 
+              className="h-10 w-auto rounded-xl object-contain transition-transform group-hover:scale-105" 
+            />
+          </div>
         </Link>
 
         {/* Navigation Links (Desktop) */}
