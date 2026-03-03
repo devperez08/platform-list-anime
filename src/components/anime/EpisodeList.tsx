@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAnimeEpisodes, JikanEpisode } from '@/services/jikan';
-import { getLibraryItem, updateLibraryItem, addToLibrary, LibraryItem } from '@/services/library';
+import { getLibraryItem, updateLibraryItem, addToLibrary, LibraryItem, LibraryStatus } from '@/services/library';
 
 interface EpisodeListProps {
   animeId: number;
@@ -45,6 +45,10 @@ export default function EpisodeList({ animeId, totalEpisodes, title, imageUrl }:
     const isAdding = !isInLibrary;
     const newCount = watchedCount === episodeNum ? episodeNum - 1 : episodeNum;
     
+    // Check if the anime is completed
+    const isCompleted = totalEpisodes ? newCount >= totalEpisodes : false;
+    const newStatus: LibraryStatus = isCompleted ? 'completed' : 'watching';
+
     // Optimistic update
     setWatchedCount(newCount);
     if (isAdding) setIsInLibrary(true);
@@ -55,23 +59,28 @@ export default function EpisodeList({ animeId, totalEpisodes, title, imageUrl }:
           anime_id_jikan: animeId,
           title: title,
           image_url: imageUrl,
-          status: 'watching',
+          status: newStatus,
           episodes_watched: newCount,
         };
         await addToLibrary(item);
       } else {
         await updateLibraryItem(animeId, { 
           episodes_watched: newCount,
-          status: newCount > 0 ? 'watching' : 'plan_to_watch'
+          status: newCount === 0 ? 'plan_to_watch' : newStatus
         });
       }
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating progress:', error);
       // Revert if error
       setWatchedCount(watchedCount);
       if (isAdding) setIsInLibrary(false);
-      alert('Debes iniciar sesión para marcar episodios como vistos.');
+      
+      if (error.message?.includes('logged in')) {
+        alert('Debes iniciar sesión para marcar episodios como vistos.');
+      } else {
+        alert('Error al actualizar progreso: ' + (error.message || 'Ocurrió un problema inesperado.'));
+      }
     }
   };
 

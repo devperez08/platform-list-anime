@@ -109,7 +109,7 @@ export default function ProfilePage() {
               </h1>
               <p className="text-zinc-500 text-sm font-medium mb-6">@{profile?.username || user.email?.split('@')[0]}</p>
               
-              <Link href="/settings" className="btn btn-outline btn-sm rounded-full w-full border-white/10 hover:bg-white hover:text-black transition-all">
+              <Link href="/settings" className="btn btn-primary btn-sm rounded-full w-full font-bold italic shadow-lg shadow-primary/20 transition-all">
                 Editar Perfil
               </Link>
             </div>
