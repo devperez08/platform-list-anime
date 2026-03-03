@@ -1,12 +1,11 @@
-
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import AnimeCard from '@/components/anime/AnimeCard';
-import AnimeDetailsModal from '@/components/anime/AnimeDetailsModal';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import AnimeCard from "@/components/anime/AnimeCard";
+import AnimeDetailsModal from "@/components/anime/AnimeDetailsModal";
 
-import { getTopAnime, JikanAnime } from '@/services/jikan';
+import { getTopAnime, JikanAnime } from "@/services/jikan";
 
 export default function Home() {
   const [trendingAnime, setTrendingAnime] = useState<JikanAnime[]>([]);
@@ -18,7 +17,7 @@ export default function Home() {
         const res = await getTopAnime();
         setTrendingAnime(res.data);
       } catch (error) {
-        console.error('Error fetching trending anime:', error);
+        console.error("Error fetching trending anime:", error);
       } finally {
         setIsLoading(false);
       }
@@ -29,12 +28,14 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-zinc-950">
       {/* Hero Section */}
-      <section className="relative h-[85vh] w-full flex items-center overflow-hidden">
+      <section className="relative h-[90vh] w-full flex items-center pt-20 overflow-hidden">
         {/* Hero Background with Gradient Overlay */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 scale-105"
-          style={{ 
-            backgroundImage: trendingAnime[0] ? `url(${trendingAnime[0].images.webp.large_image_url})` : "url('/assets/images/lanscape.png')",
+          style={{
+            backgroundImage: trendingAnime[0]
+              ? `url(${trendingAnime[0].images.webp.large_image_url})`
+              : "url('/assets/images/lanscape.png')",
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-black/20" />
@@ -47,19 +48,22 @@ export default function Home() {
               <span className="px-3 py-1 bg-primary/20 border border-primary/30 text-primary text-xs font-bold rounded-full backdrop-blur-md">
                 ESTRENO DESTACADO
               </span>
-              <span className="text-zinc-400 text-sm font-medium">Temporada de Invierno 2026</span>
+              <span className="text-zinc-400 text-sm font-medium">
+                Temporada de Invierno 2026
+              </span>
             </div>
-            
+
             <h1 className="text-7xl md:text-9xl font-black text-white mb-6 tracking-tighter italic uppercase">
               {trendingAnime[0]?.title || "EPINEKO"}
             </h1>
             <p className="text-xl md:text-2xl text-zinc-300 mb-10 max-w-xl leading-relaxed font-light line-clamp-2">
-              {trendingAnime[0]?.synopsis || "Descubre un universo de historias. Tu próxima aventura anime comienza con un solo clic."}
+              {trendingAnime[0]?.synopsis ||
+                "Descubre un universo de historias. Tu próxima aventura anime comienza con un solo clic."}
             </p>
-            
+
             <div className="flex flex-wrap gap-5">
               {trendingAnime[0] && (
-                <Link 
+                <Link
                   href={`/anime/${trendingAnime[0].mal_id}`}
                   className="btn btn-primary btn-lg rounded-full px-10 shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all font-black text-lg"
                 >
@@ -75,70 +79,46 @@ export default function Home() {
       </section>
 
       {/* Content Sections */}
-      <div className="container mx-auto px-6 -mt-32 relative z-20 pb-32">
-        
+      <div className="container mx-auto px-6 relative z-20 pb-32">
         {/* Trending Section */}
         <section className="mb-20">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <p className="text-primary font-bold text-sm tracking-widest uppercase mb-1">Lo más visto</p>
+              <p className="text-primary font-bold text-sm tracking-widest uppercase mb-1">
+                Lo más visto
+              </p>
               <h2 className="text-3xl md:text-4xl font-black text-white italic tracking-tight">
                 TENDENCIAS DE LA SEMANA
               </h2>
             </div>
-            <Link href="/trending" className="text-sm font-bold text-zinc-500 hover:text-white transition-colors border-b border-transparent hover:border-white pb-1">
+            <Link
+              href="/trending"
+              className="text-sm font-bold text-zinc-500 hover:text-white transition-colors border-b border-transparent hover:border-white pb-1"
+            >
               VER CATÁLOGO COMPLETO
             </Link>
           </div>
-          
+
           <div className="flex gap-6 overflow-x-auto pb-10 no-scrollbar snap-x">
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex-none w-44 md:w-56 aspect-[2/3] bg-zinc-900 animate-pulse rounded-2xl" />
-              ))
-            ) : (
-              trendingAnime.map((anime) => (
-                <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`}>
-                  <AnimeCard 
-                    mal_id={anime.mal_id}
-                    image={anime.images.webp.large_image_url}
-                    title={anime.title}
-                    score={anime.score?.toString()}
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-none w-44 md:w-56 aspect-[2/3] bg-zinc-900 animate-pulse rounded-2xl"
                   />
-                </Link>
-              ))
-            )}
+                ))
+              : trendingAnime.map((anime) => (
+                  <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`}>
+                    <AnimeCard
+                      mal_id={anime.mal_id}
+                      image={anime.images.webp.large_image_url}
+                      title={anime.title}
+                      score={anime.score?.toString()}
+                    />
+                  </Link>
+                ))}
           </div>
         </section>
-
-        {/* Categories Section */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
-          <div className="relative h-64 rounded-3xl overflow-hidden group cursor-pointer">
-            <img 
-              src="/assets/images/animekey.png" 
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              alt="Action"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-            <div className="absolute bottom-8 left-8">
-              <h3 className="text-3xl font-black text-white italic">ACCIÓN Y AVENTURA</h3>
-              <p className="text-zinc-300 font-medium">Explosiones, duelos y épica</p>
-            </div>
-          </div>
-          <div className="relative h-64 rounded-3xl overflow-hidden group cursor-pointer">
-            <img 
-              src="https://images.unsplash.com/photo-1541562232579-512a21360020?q=80&w=2000&auto=format&fit=crop" 
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              alt="Drama"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-            <div className="absolute bottom-8 left-8">
-              <h3 className="text-3xl font-black text-white italic">SLICE OF LIFE</h3>
-              <p className="text-zinc-300 font-medium">Historias del día a día</p>
-            </div>
-          </div>
-        </section>
-
       </div>
 
       <style jsx>{`
