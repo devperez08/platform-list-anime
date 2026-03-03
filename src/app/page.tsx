@@ -45,7 +45,7 @@ export default function Home() {
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-3xl animate-in fade-in slide-in-from-left-12 duration-1000">
             <div className="flex items-center gap-3 mb-6">
-              <span className="px-3 py-1 bg-primary/20 border border-primary/30 text-primary text-xs font-bold rounded-full backdrop-blur-md">
+              <span className="px-5 py-1.5 bg-primary text-white text-[10px] font-black rounded-full shadow-lg shadow-primary/30 uppercase tracking-[0.15em] border border-white/10">
                 ESTRENO DESTACADO
               </span>
               <span className="text-zinc-400 text-sm font-medium">
@@ -65,12 +65,12 @@ export default function Home() {
               {trendingAnime[0] && (
                 <Link
                   href={`/anime/${trendingAnime[0].mal_id}`}
-                  className="btn btn-primary btn-lg rounded-full px-10 shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all font-black text-lg"
+                  className="btn btn-primary btn-lg rounded-full px-12 shadow-[0_0_30px_rgba(var(--primary-rgb),0.4)] hover:shadow-[0_0_50px_rgba(var(--primary-rgb),0.6)] hover:scale-105 transition-all font-black text-lg text-white border-2 border-white/10 italic"
                 >
                   VER DETALLES
                 </Link>
               )}
-              <button className="btn btn-ghost btn-lg rounded-full px-10 border-white/10 hover:bg-white/5 text-white backdrop-blur-md font-bold">
+              <button className="btn btn-lg rounded-full px-12 bg-zinc-800/80 hover:bg-zinc-700 text-white backdrop-blur-xl font-black italic border-2 border-white/10 shadow-xl transition-all hover:scale-105 active:scale-95 uppercase tracking-wider">
                 EXPLORAR TODO
               </button>
             </div>

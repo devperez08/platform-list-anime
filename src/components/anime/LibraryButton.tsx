@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { getLibraryItem, addToLibrary, removeFromLibrary, LibraryItem } from '@/services/library';
 
 interface LibraryButtonProps {
@@ -11,6 +12,7 @@ interface LibraryButtonProps {
 }
 
 export default function LibraryButton({ animeId, title, imageUrl }: LibraryButtonProps) {
+  const router = useRouter();
   const [isInLibrary, setIsInLibrary] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -43,6 +45,7 @@ export default function LibraryButton({ animeId, title, imageUrl }: LibraryButto
         await addToLibrary(item);
         setIsInLibrary(true);
       }
+      router.refresh();
     } catch (error) {
       console.error('Library action error:', error);
       alert('Debes iniciar sesión para guardar animes en tu lista.');

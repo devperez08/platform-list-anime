@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "EpiNeko",
   description: "Your ultimate Anime Tracker",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({

@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import LibraryButton from '@/components/anime/LibraryButton';
+import EpisodeList from '@/components/anime/EpisodeList';
 
 interface AnimePageProps {
   params: Promise<{ id: string }>;
@@ -110,9 +111,16 @@ export default async function AnimePage({ params }: AnimePageProps) {
           <div className="lg:col-span-2">
             <div className="mb-16">
               <h2 className="text-2xl font-black italic mb-6 border-l-4 border-primary pl-4">SINOPSIS</h2>
-              <p className="text-xl text-zinc-300 leading-relaxed font-light">
+              <p className="text-xl text-zinc-100 leading-relaxed font-light">
                 {anime.synopsis || "No hay sinopsis disponible para este anime."}
               </p>
+
+              <EpisodeList 
+                animeId={anime.mal_id} 
+                totalEpisodes={anime.episodes} 
+                title={anime.title}
+                imageUrl={anime.images.webp.large_image_url}
+              />
             </div>
 
             <div className="mb-16">

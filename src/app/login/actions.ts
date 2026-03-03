@@ -7,16 +7,33 @@ import { createClient } from '@/utils/supabase/server'
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
-  // type-casting here for simplicity
-  // in a real app, you should use a validation library like zod
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
+  const identifier = formData.get('identifier') as string
+  const password = formData.get('password') as string
+  
+  let email = identifier
+
+  // Si el identificador no parece un correo, buscamos el email asociado al username en profiles
+  if (!identifier.includes('@')) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('username', identifier)
+      .maybeSingle()
+    
+    if (profile?.email) {
+      email = profile.email
+    } else {
+      // Si no encontramos el perfil, probablemente el login fallará, pero dejamos que Supabase lo maneje
+    }
   }
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 
   if (error) {
+    console.error('Login error:', error.message)
     redirect('/error')
   }
 
@@ -29,17 +46,18 @@ export async function signup(formData: FormData) {
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  const fullName = formData.get('full_name') as string
+  const username = formData.get('username') as string
   
-  // Usar el nombre del formulario o extraer uno por defecto del email
-  const finalFullName = fullName || email.split('@')[0]
+  // Usar el nombre de usuario del formulario o extraer uno por defecto del email
+  const finalUsername = username || email.split('@')[0]
 
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
-        full_name: finalFullName,
+        full_name: finalUsername,
+        username: finalUsername,
       }
     }
   })

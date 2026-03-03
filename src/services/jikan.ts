@@ -68,3 +68,20 @@ export const getAnimeById = async (id: number): Promise<JikanResponse<JikanAnime
 export const getAnimeCharacters = async (id: number): Promise<JikanResponse<any[]>> => {
   return jikanFetch<JikanResponse<any[]>>(`/anime/${id}/characters`);
 };
+
+export interface JikanEpisode {
+  mal_id: number;
+  url: string;
+  title: string;
+  title_japanese: string | null;
+  title_romanji: string | null;
+  duration: number | null;
+  aired: string | null;
+  filler: boolean;
+  recap: boolean;
+  forum_url: string | null;
+}
+
+export const getAnimeEpisodes = async (id: number, page = 1): Promise<JikanResponse<JikanEpisode[]>> => {
+  return jikanFetch<JikanResponse<JikanEpisode[]>>(`/anime/${id}/episodes?page=${page}`);
+};

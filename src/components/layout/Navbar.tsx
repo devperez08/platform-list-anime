@@ -29,8 +29,8 @@ export default function Navbar({ user }: NavbarProps) {
     <nav
       className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ease-in-out ${
         scrolled
-          ? "bg-zinc-950/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] py-3 border-b border-white/5"
-          : "bg-gradient-to-b from-black/90 via-black/40 to-transparent py-5"
+          ? "bg-black/90 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] py-3 border-b border-white/5"
+          : "bg-gradient-to-b from-black/95 via-black/80 to-black/20 py-5"
       }`}
     >
       <div className="container mx-auto px-6 flex justify-between items-center">
@@ -49,14 +49,14 @@ export default function Navbar({ user }: NavbarProps) {
         <div className="hidden lg:flex items-center gap-8">
           <Link
             href="/"
-            className="text-[10px] font-black text-zinc-400 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
+            className="text-[10px] font-black text-zinc-300 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
           >
             Inicio
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
           </Link>
           <Link
             href="/popular"
-            className="text-[10px] font-black text-zinc-400 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
+            className="text-[10px] font-black text-zinc-300 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
           >
             Tendencias
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
@@ -64,7 +64,7 @@ export default function Navbar({ user }: NavbarProps) {
           {user && (
             <Link
               href="/library"
-              className="text-[10px] font-black text-zinc-400 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
+              className="text-[10px] font-black text-zinc-300 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
             >
               Mi Lista
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
@@ -85,9 +85,9 @@ export default function Navbar({ user }: NavbarProps) {
                 role="button"
                 className="btn btn-ghost btn-circle avatar border border-white/5 hover:border-primary/50 transition-all p-0.5"
               >
-                <div className="bg-zinc-800 text-white rounded-full w-full h-full flex items-center justify-center overflow-hidden">
+                <div className="bg-zinc-800 text-white rounded-full w-full h-full flex items-center justify-center overflow-hidden border border-white/5">
                   <span className="text-xs font-black italic">
-                    {user.email?.charAt(0).toUpperCase()}
+                    {(user.user_metadata?.username || user.user_metadata?.full_name || user.email)?.charAt(0).toUpperCase()}
                   </span>
                 </div>
               </div>
@@ -120,7 +120,7 @@ export default function Navbar({ user }: NavbarProps) {
               </ul>
             </div>
           ) : (
-            <Link href="/login" className="btn btn-primary btn-sm rounded-full px-6 font-black italic tracking-tighter shadow-lg shadow-primary/20">
+            <Link href="/login" className="btn btn-primary btn-sm rounded-full px-6 font-black italic tracking-tighter shadow-lg shadow-primary/20 text-white">
               LOGIN
             </Link>
           )}
