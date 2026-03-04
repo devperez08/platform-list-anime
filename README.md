@@ -1,5 +1,7 @@
 # EpiNeko
 
+# 📖 Consulta la documentación completa aquí: https://devperez08-platform-list-anime-54.mintlify.app/
+
 **EpiNeko** is a personal anime listing and progress tracking platform designed with a focus on visual discovery and fluid user experience.
 
 Inspired by the dynamic layout of _JustWatch_, this project aims to provide a "vibe-centric" way to manage your watchlists without the clutter of traditional listing sites.
