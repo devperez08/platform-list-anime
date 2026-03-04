@@ -1,4 +1,4 @@
-# 🐾 EpiNeko
+# EpiNeko
 
 **EpiNeko** is a personal anime listing and progress tracking platform designed with a focus on visual discovery and fluid user experience.
 
