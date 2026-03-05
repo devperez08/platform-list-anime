@@ -65,14 +65,17 @@ export default function Home() {
               {trendingAnime[0] && (
                 <Link
                   href={`/anime/${trendingAnime[0].mal_id}`}
-                  className="btn btn-primary btn-lg rounded-full px-12 shadow-[0_0_30px_rgba(var(--primary-rgb),0.4)] hover:shadow-[0_0_50px_rgba(var(--primary-rgb),0.6)] hover:scale-105 transition-all font-black text-lg text-white border-2 border-white/10 italic"
+                  className="btn btn-primary btn-lg rounded-full px-12 shadow-[0_0_30px_rgba(var(--primary-rgb),0.4)] hover:shadow-[0_0_50px_rgba(var(--primary-rgb),0.6)] hover:scale-105 transition-all font-black text-lg text-white border-2 border-white/10 italic flex items-center justify-center"
                 >
                   VER DETALLES
                 </Link>
               )}
-              <button className="btn btn-lg rounded-full px-12 bg-zinc-800/80 hover:bg-zinc-700 text-white backdrop-blur-xl font-black italic border-2 border-white/10 shadow-xl transition-all hover:scale-105 active:scale-95 uppercase tracking-wider">
+              <Link 
+                href="/trending" 
+                className="btn btn-lg rounded-full px-12 bg-zinc-800/80 hover:bg-zinc-700 text-white backdrop-blur-xl font-black italic border-2 border-white/10 shadow-xl transition-all hover:scale-105 active:scale-95 uppercase tracking-wider flex items-center justify-center"
+              >
                 EXPLORAR TODO
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -101,13 +104,13 @@ export default function Home() {
 
           <div className="flex gap-6 overflow-x-auto pb-10 no-scrollbar snap-x">
             {isLoading
-              ? Array.from({ length: 6 }).map((_, i) => (
+              ? Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
                     className="flex-none w-44 md:w-56 aspect-[2/3] bg-zinc-900 animate-pulse rounded-2xl"
                   />
                 ))
-              : trendingAnime.map((anime) => (
+              : trendingAnime.slice(0, 15).map((anime) => (
                   <Link key={anime.mal_id} href={`/anime/${anime.mal_id}`}>
                     <AnimeCard
                       mal_id={anime.mal_id}

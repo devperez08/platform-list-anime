@@ -33,20 +33,21 @@ export default function Navbar({ user }: NavbarProps) {
           : "bg-gradient-to-b from-black/95 via-black/80 to-black/20 py-5"
       }`}
     >
-      <div className="container mx-auto px-6 flex justify-between items-center">
+      <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
+
         {/* Logo */}
-        <Link href="/" className="group flex items-center">
+        <Link href="/" className="group flex items-center flex-shrink-0">
           <div className="bg-white/5 border border-white/10 p-1.5 rounded-2xl shadow-xl backdrop-blur-sm transition-all group-hover:border-primary/40 group-hover:bg-white/10">
-            <img 
-              src="/assets/images/logo.jpeg" 
-              alt="EPINEKO Logo" 
-              className="h-10 w-auto rounded-xl object-contain transition-transform group-hover:scale-105" 
+            <img
+              src="/assets/images/logo.jpeg"
+              alt="EPINEKO Logo"
+              className="h-10 w-auto rounded-xl object-contain transition-transform group-hover:scale-105"
             />
           </div>
         </Link>
 
-        {/* Navigation Links (Desktop) */}
-        <div className="hidden lg:flex items-center gap-8">
+        {/* Navigation Links — desktop only */}
+        <div className="hidden lg:flex items-center gap-8 flex-shrink-0">
           <Link
             href="/"
             className="text-[10px] font-black text-zinc-300 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
@@ -55,7 +56,7 @@ export default function Navbar({ user }: NavbarProps) {
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
           </Link>
           <Link
-            href="/popular"
+            href="/trending"
             className="text-[10px] font-black text-zinc-300 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
           >
             Tendencias
@@ -72,12 +73,13 @@ export default function Navbar({ user }: NavbarProps) {
           )}
         </div>
 
-        {/* User Actions */}
-        <div className="flex items-center gap-2 md:gap-4">
-          <div className="hidden sm:block">
-            <SearchBar />
-          </div>
+        {/* SearchBar — visible on all devices, grows to fill space */}
+        <div className="flex-1 max-w-[180px] sm:max-w-xs md:max-w-sm lg:max-w-md">
+          <SearchBar />
+        </div>
 
+        {/* User Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           {user ? (
             <div className="dropdown dropdown-end">
               <div
@@ -112,8 +114,8 @@ export default function Navbar({ user }: NavbarProps) {
                 <li>
                   <form action={signOut} className="w-full">
                     <button type="submit" className="w-full flex items-center gap-3 py-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors font-bold">
-                       <span className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">🚪</span>
-                       Cerrar Sesión
+                      <span className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">🚪</span>
+                      Cerrar Sesión
                     </button>
                   </form>
                 </li>

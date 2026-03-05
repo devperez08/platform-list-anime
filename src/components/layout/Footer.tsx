@@ -30,7 +30,7 @@ export default function Footer() {
             <h4 className="text-white font-black italic tracking-wider mb-6 uppercase text-sm">Explorar</h4>
             <ul className="space-y-4 text-zinc-500 text-sm font-medium">
               <li><Link href="/" className="hover:text-primary transition-colors">Inicio</Link></li>
-              <li><Link href="/popular" className="hover:text-primary transition-colors">Tendencias</Link></li>
+              <li><Link href="/trending" className="hover:text-primary transition-colors">Tendencias</Link></li>
               <li><Link href="/library" className="hover:text-primary transition-colors">Mi Lista</Link></li>
               <li><Link href="/seasonal" className="hover:text-primary transition-colors">Temporada</Link></li>
             </ul>
