@@ -129,17 +129,27 @@ export default function SignupPage() {
             </Link>
           </div>
 
-          <div className="relative my-2">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-white/5"></span>
-            </div>
-            <div className="relative flex justify-center text-[10px] uppercase font-bold">
-              <span className="bg-zinc-900 px-4 text-zinc-600 tracking-widest">O continúa con</span>
-            </div>
+          <div className="text-center mt-2">
+            <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">
+              Nota: Revisa tu bandeja de entrada <br /> para confirmar tu cuenta tras registrarte.
+            </p>
           </div>
+        </form>
 
+        {/* Separador OAuth */}
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-white/5"></span>
+          </div>
+          <div className="relative flex justify-center text-[10px] uppercase font-bold">
+            <span className="bg-zinc-900/40 px-4 text-zinc-600 tracking-widest">O continúa con</span>
+          </div>
+        </div>
+
+        {/* Form independiente para Google — sin campos required */}
+        <form action={loginWithGoogle}>
           <button
-            formAction={loginWithGoogle}
+            type="submit"
             className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 text-white font-black italic rounded-2xl border border-white/5 hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-wider flex items-center justify-center gap-3 shadow-xl"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -162,12 +172,6 @@ export default function SignupPage() {
             </svg>
             Google
           </button>
-          
-          <div className="text-center mt-6">
-            <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest leading-relaxed">
-              Nota: Revisa tu bandeja de entrada <br /> para confirmar tu cuenta tras registrarte.
-            </p>
-          </div>
         </form>
       </div>
     </div>
