@@ -28,7 +28,29 @@ export async function updateSession(request: NextRequest) {
   )
 
   // refreshing the auth token
-  await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const url = request.nextUrl.clone()
+  
+  // Protect private routes
+  const protectedRoutes = ['/profile', '/library', '/settings']
+  const isProtectedRoute = protectedRoutes.some(route => url.pathname.startsWith(route))
+  
+  if (!user && isProtectedRoute) {
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  // Redirect logged in users away from auth pages
+  const authRoutes = ['/login', '/signup']
+  const isAuthRoute = authRoutes.some(route => url.pathname.startsWith(route))
+  
+  if (user && isAuthRoute) {
+    url.pathname = '/'
+    return NextResponse.redirect(url)
+  }
 
   return supabaseResponse
 }
