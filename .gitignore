@@ -1,16 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-.env.local
-
-#git
-.gitignore
-
-# gemini
-gemini.md
-
-# dependencies
-/node_modules
-/.pnp
+# Dependencies
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -18,33 +10,42 @@ gemini.md
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# Next.js
+.next/
+out/
+next-env.d.ts
 
-# next.js
-/.next/
-/out/
+# Production
+build/
+dist/
 
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Scratch & Dev Scripts
+test_jikan.js
+gemini.md
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Environment & Private Files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+*.pem
 
-# vercel
+# IDE & OS
+.DS_Store
+.vscode/
+.idea/
+*.tsbuildinfo
+
+# Vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-.env*.local
+# Agent-Specific (unless you want to share them)
+# .agents/
+# skills-lock.json
