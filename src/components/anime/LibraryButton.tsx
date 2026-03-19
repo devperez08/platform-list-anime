@@ -8,17 +8,20 @@ interface LibraryButtonProps {
   animeId: number;
   title: string;
   imageUrl: string;
+  initialStatus?: LibraryStatus;
 }
 
-export default function LibraryButton({ animeId, title, imageUrl }: LibraryButtonProps) {
+export default function LibraryButton({ animeId, title, imageUrl, initialStatus }: LibraryButtonProps) {
   const router = useRouter();
-  const [isInLibrary, setIsInLibrary] = useState(false);
+  const [isInLibrary, setIsInLibrary] = useState(!!initialStatus);
   const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState<LibraryStatus>('plan_to_watch');
+  const [status, setStatus] = useState<LibraryStatus>(initialStatus || 'plan_to_watch');
 
   useEffect(() => {
-    checkLibraryStatus();
-  }, [animeId]);
+    if (!initialStatus) {
+      checkLibraryStatus();
+    }
+  }, [animeId, initialStatus]);
 
   const checkLibraryStatus = async () => {
     try {

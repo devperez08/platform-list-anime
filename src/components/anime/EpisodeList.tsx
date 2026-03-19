@@ -10,24 +10,44 @@ interface EpisodeListProps {
   totalEpisodes: number | null;
   title: string;
   imageUrl: string;
+  initialEpisodes?: JikanEpisode[];
+  initialWatchedCount?: number;
+  initialIsInLibrary?: boolean;
 }
 
-export default function EpisodeList({ animeId, totalEpisodes, title, imageUrl }: EpisodeListProps) {
+export default function EpisodeList({ 
+  animeId, 
+  totalEpisodes, 
+  title, 
+  imageUrl, 
+  initialEpisodes = [], 
+  initialWatchedCount = 0,
+  initialIsInLibrary = false
+}: EpisodeListProps) {
   const router = useRouter();
-  const [episodes, setEpisodes] = useState<JikanEpisode[]>([]);
-  const [watchedCount, setWatchedCount] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isInLibrary, setIsInLibrary] = useState(false);
+  const [episodes, setEpisodes] = useState<JikanEpisode[]>(initialEpisodes);
+  const [watchedCount, setWatchedCount] = useState<number>(initialWatchedCount);
+  const [isLoading, setIsLoading] = useState(initialEpisodes.length === 0);
+  const [isInLibrary, setIsInLibrary] = useState(initialIsInLibrary);
 
   useEffect(() => {
     async function fetchData() {
+      // If we already have episodes AND library state, we don't need to fetch anything
+      if (initialEpisodes.length > 0 && initialIsInLibrary !== undefined) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const [epRes, libItem] = await Promise.all([
-          getAnimeEpisodes(animeId),
+        const promises: [Promise<any>, Promise<any>] = [
+          episodes.length === 0 ? getAnimeEpisodes(animeId) : Promise.resolve({ data: episodes }),
           getLibraryItem(animeId)
-        ]);
+        ];
         
-        setEpisodes(epRes.data || []);
+        const [epRes, libItem] = await Promise.all(promises);
+        
+        if (episodes.length === 0) setEpisodes(epRes.data || []);
+        
         if (libItem) {
           setIsInLibrary(true);
           setWatchedCount(libItem.episodes_watched || 0);
@@ -39,7 +59,7 @@ export default function EpisodeList({ animeId, totalEpisodes, title, imageUrl }:
       }
     }
     fetchData();
-  }, [animeId]);
+  }, [animeId, episodes.length, initialEpisodes.length, initialIsInLibrary]);
 
   const handleToggleEpisode = async (episodeNum: number) => {
     const isAdding = !isInLibrary;

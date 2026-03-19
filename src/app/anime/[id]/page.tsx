@@ -1,14 +1,33 @@
 
-import React from 'react';
-import { getAnimeById, getAnimeCharacters } from '@/services/jikan';
+import React, { Suspense } from 'react';
+import { getAnimeById, getAnimeCharacters, getTopAnime, getAnimeEpisodes } from '@/services/jikan';
 import { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import LibraryButton from '@/components/anime/LibraryButton';
 import EpisodeList from '@/components/anime/EpisodeList';
+import { createClient } from '@/utils/supabase/server';
 
 interface AnimePageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateStaticParams() {
+  try {
+    // Fetch top 50 anime to pre-render (2 pages of 25)
+    const [page1, page2] = await Promise.all([
+      getTopAnime(1),
+      getTopAnime(2)
+    ]);
+    
+    const allTop = [...page1.data, ...page2.data];
+    
+    return allTop.map((anime) => ({
+      id: anime.mal_id.toString(),
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: AnimePageProps): Promise<Metadata> {
@@ -30,13 +49,35 @@ export default async function AnimePage({ params }: AnimePageProps) {
   const { id } = await params;
   const animeId = parseInt(id);
   
-  const [animeRes, charactersRes] = await Promise.all([
+  // Fetch anime data from Jikan (server-side, cached by Next.js)
+  const [animeRes, charactersRes, episodesRes] = await Promise.all([
     getAnimeById(animeId),
-    getAnimeCharacters(animeId)
+    getAnimeCharacters(animeId),
+    getAnimeEpisodes(animeId)
   ]);
 
   const anime = animeRes.data;
   const characters = charactersRes.data?.slice(0, 10) || [];
+  const episodes = episodesRes.data || [];
+
+  // Try to get library status if user is logged in (server-side check)
+  let libraryItem = null;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      const { data } = await supabase
+        .from('user_library')
+        .select('*')
+        .match({ user_id: user.id, anime_id_jikan: animeId })
+        .single();
+      libraryItem = data;
+    }
+  } catch (error) {
+    // Graceful failure if auth/db fails - components will fallback to client-side checks
+    console.error('Error fetching server-side library status:', error);
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -83,11 +124,14 @@ export default async function AnimePage({ params }: AnimePageProps) {
               )}
 
               <div className="flex flex-wrap gap-4 mt-8">
-                <LibraryButton 
-                  animeId={anime.mal_id} 
-                  title={anime.title} 
-                  imageUrl={anime.images.webp.large_image_url} 
-                />
+                <Suspense fallback={<div className="h-14 w-full bg-zinc-900 animate-pulse rounded-full" />}>
+                  <LibraryButton 
+                    animeId={anime.mal_id} 
+                    title={anime.title} 
+                    imageUrl={anime.images.webp.large_image_url} 
+                    initialStatus={libraryItem?.status}
+                  />
+                </Suspense>
                 <div className="flex items-center gap-4">
                   <div className="flex -space-x-4">
                     {characters.slice(0, 4).map((char, i) => (
@@ -115,12 +159,17 @@ export default async function AnimePage({ params }: AnimePageProps) {
                 {anime.synopsis || "No hay sinopsis disponible para este anime."}
               </p>
 
-              <EpisodeList 
-                animeId={anime.mal_id} 
-                totalEpisodes={anime.episodes} 
-                title={anime.title}
-                imageUrl={anime.images.webp.large_image_url}
-              />
+              <Suspense fallback={<div className="h-32 w-full bg-zinc-900 animate-pulse rounded-2xl mt-12" />}>
+                <EpisodeList 
+                  animeId={anime.mal_id} 
+                  totalEpisodes={anime.episodes} 
+                  title={anime.title}
+                  imageUrl={anime.images.webp.large_image_url}
+                  initialEpisodes={episodes}
+                  initialWatchedCount={libraryItem?.episodes_watched}
+                  initialIsInLibrary={!!libraryItem}
+                />
+              </Suspense>
             </div>
 
             <div className="mb-16">
