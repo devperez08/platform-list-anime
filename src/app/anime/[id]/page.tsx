@@ -15,17 +15,17 @@ export async function generateStaticParams() {
   try {
     // Fetch top 50 anime to pre-render (2 pages of 25)
     const [page1, page2] = await Promise.all([
-      getTopAnime(1),
-      getTopAnime(2)
+      getTopAnime(1).catch(() => ({ data: [] })),
+      getTopAnime(2).catch(() => ({ data: [] }))
     ]);
     
-    const allTop = [...page1.data, ...page2.data];
+    const allTop = [...(page1?.data || []), ...(page2?.data || [])];
     
     return allTop.map((anime) => ({
       id: anime.mal_id.toString(),
     }));
   } catch (error) {
-    console.error('Error generating static params:', error);
+    console.error('Error in generateStaticParams:', error);
     return [];
   }
 }
@@ -56,9 +56,19 @@ export default async function AnimePage({ params }: AnimePageProps) {
     getAnimeEpisodes(animeId)
   ]);
 
-  const anime = animeRes.data;
-  const characters = charactersRes.data?.slice(0, 10) || [];
-  const episodes = episodesRes.data || [];
+  const anime = animeRes?.data;
+  const characters = charactersRes?.data?.slice(0, 10) || [];
+  const episodes = episodesRes?.data || [];
+
+  if (!anime || !anime.images) {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 text-center">
+        <h1 className="text-4xl font-black mb-4">¡UY! ALGO SALIÓ MAL</h1>
+        <p className="text-zinc-400 mb-8 max-w-md">No pudimos cargar la información de este anime en este momento. Por favor, intenta de nuevo más tarde.</p>
+        <Link href="/" className="btn btn-primary rounded-full px-8">VOLVER AL INICIO</Link>
+      </div>
+    );
+  }
 
   // Try to get library status if user is logged in (server-side check)
   let libraryItem = null;

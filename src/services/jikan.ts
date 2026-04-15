@@ -115,17 +115,99 @@ async function anilistQuery(query: string, variables: Record<string, any>): Prom
   }
 }
 
+// ─── AniList List Fallbacks ───────────────────────────────────────────────────
+
+async function fetchAniListTop(page: number, perPage = 25): Promise<JikanAnime[] | null> {
+  const gql = `
+    query ($page: Int, $perPage: Int) {
+      Page(page: $page, perPage: $perPage) {
+        media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
+          id idMal
+          title { romaji english native }
+          coverImage { large medium }
+          format averageScore episodes status season seasonYear
+          description
+        }
+      }
+    }
+  `;
+  const json = await anilistQuery(gql, { page, perPage });
+  const media = json?.data?.Page?.media;
+  if (!media) return null;
+
+  return media.map((m: any) => ({
+    mal_id: m.idMal ?? m.id,
+    title: m.title?.english || m.title?.romaji || 'Sin título',
+    title_english: m.title?.english ?? null,
+    title_japanese: m.title?.native ?? null,
+    type: formatType(m.format),
+    episodes: m.episodes ?? null,
+    status: formatStatus(m.status),
+    score: m.averageScore ? +(m.averageScore / 10).toFixed(1) : null,
+    synopsis: m.description?.replace(/<[^>]+>/g, '') ?? null,
+    background: null,
+    season: m.season?.toLowerCase() ?? null,
+    year: m.seasonYear ?? null,
+    images: makeImageObj(m.coverImage?.large ?? '', m.coverImage?.medium ?? ''),
+  }));
+}
+
+async function fetchAniListSearch(query: string, page: number, perPage = 25): Promise<JikanAnime[] | null> {
+  const gql = `
+    query ($search: String, $page: Int, $perPage: Int) {
+      Page(page: $page, perPage: $perPage) {
+        media(search: $search, type: ANIME, isAdult: false) {
+          id idMal
+          title { romaji english native }
+          coverImage { large medium }
+          format averageScore episodes status season seasonYear
+          description
+        }
+      }
+    }
+  `;
+  const json = await anilistQuery(gql, { search: query, page, perPage });
+  const media = json?.data?.Page?.media;
+  if (!media) return null;
+
+  return media.map((m: any) => ({
+    mal_id: m.idMal ?? m.id,
+    title: m.title?.english || m.title?.romaji || 'Sin título',
+    title_english: m.title?.english ?? null,
+    title_japanese: m.title?.native ?? null,
+    type: formatType(m.format),
+    episodes: m.episodes ?? null,
+    status: formatStatus(m.status),
+    score: m.averageScore ? +(m.averageScore / 10).toFixed(1) : null,
+    synopsis: m.description?.replace(/<[^>]+>/g, '') ?? null,
+    background: null,
+    season: m.season?.toLowerCase() ?? null,
+    year: m.seasonYear ?? null,
+    images: makeImageObj(m.coverImage?.large ?? '', m.coverImage?.medium ?? ''),
+  }));
+}
+
 // ─── Public API ────────────────────────────────────────────────────────────────
 
 export const getTopAnime = async (page = 1): Promise<JikanResponse<JikanAnime[]>> => {
   const data = await tryJikan<JikanResponse<JikanAnime[]>>(`/top/anime?page=${page}`, 3600);
-  if (data) return data;
+  if (data?.data) return data;
+
+  // Fallback to AniList
+  const fallback = await fetchAniListTop(page);
+  if (fallback) return { data: fallback };
+
   throw new Error('No se pudieron cargar los animes populares. Intenta de nuevo.');
 };
 
 export const searchAnime = async (query: string, page = 1): Promise<JikanResponse<JikanAnime[]>> => {
   const data = await tryJikan<JikanResponse<JikanAnime[]>>(`/anime?q=${encodeURIComponent(query)}&page=${page}`, 60);
-  if (data) return data;
+  if (data?.data) return data;
+
+  // Fallback to AniList
+  const fallback = await fetchAniListSearch(query, page);
+  if (fallback) return { data: fallback };
+
   throw new Error('Búsqueda no disponible. Intenta de nuevo.');
 };
 
@@ -133,7 +215,7 @@ export const searchAnime = async (query: string, page = 1): Promise<JikanRespons
 export const getAnimeById = async (id: number): Promise<JikanResponse<JikanAnime>> => {
   // 1️⃣ Try Jikan
   const jikanData = await tryJikan<JikanResponse<JikanAnime>>(`/anime/${id}`, 86400);
-  if (jikanData) return jikanData;
+  if (jikanData?.data) return jikanData;
 
   // 2️⃣ Fallback: AniList by MAL ID
   const gql = `
@@ -174,7 +256,7 @@ export const getAnimeById = async (id: number): Promise<JikanResponse<JikanAnime
 /** Get anime characters — returns empty array gracefully when Jikan is down */
 export const getAnimeCharacters = async (id: number): Promise<JikanResponse<any[]>> => {
   const data = await tryJikan<JikanResponse<any[]>>(`/anime/${id}/characters`, 86400);
-  if (data) return data;
+  if (data?.data) return data;
   return { data: [] }; // Graceful degradation — page still renders
 };
 
@@ -193,6 +275,6 @@ export interface JikanEpisode {
 
 export const getAnimeEpisodes = async (id: number, page = 1): Promise<JikanResponse<JikanEpisode[]>> => {
   const data = await tryJikan<JikanResponse<JikanEpisode[]>>(`/anime/${id}/episodes?page=${page}`, 86400);
-  if (data) return data;
+  if (data?.data) return data;
   return { data: [] }; // Graceful degradation
 };
