@@ -47,5 +47,5 @@ yarn-error.log*
 .vercel
 
 # Agent-Specific (unless you want to share them)
-# .agents/
-# skills-lock.json
+.agents/
+skills-lock.json

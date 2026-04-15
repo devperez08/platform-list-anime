@@ -15,7 +15,7 @@ export default function Home() {
     const fetchTrending = async () => {
       try {
         const res = await getTopAnime();
-        setTrendingAnime(res.data);
+        setTrendingAnime(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
         console.error("Error fetching trending anime:", error);
       } finally {

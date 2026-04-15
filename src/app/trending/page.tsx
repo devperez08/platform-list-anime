@@ -171,7 +171,8 @@ export default function TrendingPage() {
         const json = await res.json();
         if (json.error) throw new Error(json.error);
 
-        setAnimes((prev) => (reset ? json.data : [...prev, ...json.data]));
+        const newData = Array.isArray(json.data) ? json.data : [];
+        setAnimes((prev) => (reset ? newData : [...prev, ...newData]));
         setHasNextPage(json.pagination?.has_next_page ?? false);
       } catch (err: any) {
         setError(err.message ?? "No se pudieron cargar los animes.");
