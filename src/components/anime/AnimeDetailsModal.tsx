@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { getLibraryItem, addToLibrary, removeFromLibrary, LibraryItem } from '@/services/library';
+import { getLibraryItem, addToLibrary, removeFromLibrary } from '@/services/library';
 
 interface AnimeDetailsModalProps {
   isOpen: boolean;
@@ -20,24 +20,23 @@ interface AnimeDetailsModalProps {
 }
 
 export default function AnimeDetailsModal({ isOpen, onClose, anime }: AnimeDetailsModalProps) {
+  const hasValidImage = anime?.image && anime.image.trim().length > 0;
   const [isInLibrary, setIsInLibrary] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen && anime) {
-      checkLibraryStatus();
-    }
+    if (!isOpen || !anime) return;
+    const checkLibraryStatus = async () => {
+      if (!anime) return;
+      try {
+        const item = await getLibraryItem(anime.mal_id);
+        setIsInLibrary(!!item);
+      } catch (error) {
+        console.error('Error checking library status:', error);
+      }
+    };
+    checkLibraryStatus();
   }, [isOpen, anime]);
-
-  const checkLibraryStatus = async () => {
-    if (!anime) return;
-    try {
-      const item = await getLibraryItem(anime.mal_id);
-      setIsInLibrary(!!item);
-    } catch (error) {
-      console.error('Error checking library status:', error);
-    }
-  };
 
   const handleLibraryAction = async () => {
     if (!anime) return;
@@ -47,18 +46,20 @@ export default function AnimeDetailsModal({ isOpen, onClose, anime }: AnimeDetai
         await removeFromLibrary(anime.mal_id);
         setIsInLibrary(false);
       } else {
-        const item: LibraryItem = {
+        const item: Parameters<typeof addToLibrary>[0] = {
           anime_id_jikan: anime.mal_id,
           title: anime.title,
           image_url: anime.image,
           status: 'plan_to_watch',
+          episodes_watched: 0,
         };
         await addToLibrary(item);
         setIsInLibrary(true);
       }
     } catch (error) {
       console.error('Library action error:', error);
-      alert('Debes iniciar sesión para guardar animes en tu lista.');
+      const msg = error instanceof Error ? error.message : 'Ocurrió un problema inesperado.';
+      alert('Error al actualizar tu lista: ' + msg);
     } finally {
       setIsLoading(false);
     }
@@ -89,11 +90,17 @@ export default function AnimeDetailsModal({ isOpen, onClose, anime }: AnimeDetai
           
           {/* Left Side: Poster / Background */}
           <div className="relative w-full md:w-2/5 aspect-[2/3] md:aspect-auto">
-            <img 
-              src={anime.image} 
-              alt={anime.title}
-              className="w-full h-full object-cover"
-            />
+            {hasValidImage ? (
+              <img 
+                src={anime.image} 
+                alt={anime.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-zinc-800">
+                <span className="text-4xl">🎬</span>
+              </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-zinc-900" />
           </div>
 

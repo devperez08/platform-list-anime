@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 
 const JIKAN_API_BASE = 'https://api.jikan.moe/v4';

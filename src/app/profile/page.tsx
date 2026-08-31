@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
-import { getLibrary, LibraryItem } from '@/services/library';
-import { type User } from '@supabase/supabase-js';
+import { getLibrary } from '@/services/library';
+import { getProfile, type UserProfile } from '@/services/profile';
 import Link from 'next/link';
+import ImportButton from '@/components/profile/ImportButton';
+import SyncCoversButton from '@/components/profile/SyncCoversButton';
 
 interface ProfileStats {
   total: number;
@@ -15,8 +16,7 @@ interface ProfileStats {
 }
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState<ProfileStats>({
     total: 0,
     watching: 0,
@@ -26,35 +26,23 @@ export default function ProfilePage() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const supabase = createClient();
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUser(user);
-          
-          // Fetch profile
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-          
-          setProfile(profileData);
+        // Fetch local profile from SQLite
+        const profileData = await getProfile();
+        setProfile(profileData);
 
-          // Fetch library stats
-          const library = await getLibrary();
-          const newStats = {
-            total: library.length,
-            watching: library.filter(i => i.status === 'watching').length,
-            completed: library.filter(i => i.status === 'completed').length,
-            planToWatch: library.filter(i => i.status === 'plan_to_watch').length,
-            dropped: library.filter(i => i.status === 'dropped').length,
-          };
-          setStats(newStats);
-        }
+        // Fetch library stats
+        const library = await getLibrary();
+        const newStats = {
+          total: library.length,
+          watching: library.filter(i => i.status === 'watching').length,
+          completed: library.filter(i => i.status === 'completed').length,
+          planToWatch: library.filter(i => i.status === 'plan_to_watch').length,
+          dropped: library.filter(i => i.status === 'dropped').length,
+        };
+        setStats(newStats);
       } catch (error) {
         console.error('Error fetching profile data:', error);
       } finally {
@@ -73,18 +61,16 @@ export default function ProfilePage() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center pt-20">
-        <h2 className="text-2xl font-bold text-white mb-4">Debes iniciar sesión para ver tu perfil</h2>
-        <Link href="/login" className="btn btn-primary px-8">Iniciar Sesión</Link>
-      </div>
-    );
-  }
+  const displayName = profile?.full_name || 'Sr. Perez';
+  const displayUsername = profile?.username || 'perez_owner';
+  const displayEmail = 'perez@epineko.local'; // Local-only app, no real email needed
+  const memberDate = profile?.updated_at 
+    ? new Date(profile.updated_at).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+    : 'Julio 2026';
 
   return (
     <main className="min-h-screen bg-zinc-950 pt-24 pb-20">
-      {/* Hero section with backgound */}
+      {/* Hero section with background */}
       <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-primary/20 to-zinc-950 z-0"></div>
 
       <div className="container mx-auto px-4 relative z-10">
@@ -95,21 +81,21 @@ export default function ProfilePage() {
               <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-primary to-purple-600 p-1 mb-6 shadow-xl ring-4 ring-primary/10">
                 <div className="w-full h-full rounded-full bg-zinc-900 flex items-center justify-center overflow-hidden border-4 border-zinc-900">
                   {profile?.avatar_url ? (
-                    <img src={profile.avatar_url} alt={profile.full_name || user.email} className="w-full h-full object-cover" />
+                    <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-4xl font-black text-white italic">
-                      {profile?.full_name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
+                      {displayName.charAt(0).toUpperCase()}
                     </span>
                   )}
                 </div>
               </div>
               
               <h1 className="text-2xl font-black text-white italic tracking-tight mb-1">
-                {profile?.full_name || user.email?.split('@')[0]}
+                {displayName}
               </h1>
-              <p className="text-zinc-500 text-sm font-medium mb-6">@{profile?.username || user.email?.split('@')[0]}</p>
+              <p className="text-zinc-500 text-sm font-medium mb-6">@{displayUsername}</p>
               
-              <Link href="/settings" className="btn btn-primary btn-sm rounded-full w-full font-bold italic shadow-lg shadow-primary/20 transition-all">
+              <Link href="/settings" className="inline-flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white font-bold italic rounded-full px-6 py-2.5 w-full transition-all shadow-lg">
                 Editar Perfil
               </Link>
             </div>
@@ -117,15 +103,17 @@ export default function ProfilePage() {
             <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-500">Miembro desde</span>
-                <span className="text-zinc-300 font-medium">
-                  {new Date(user.created_at).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                </span>
+                <span className="text-zinc-300 font-medium">{memberDate}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-zinc-500">Email</span>
+                <span className="text-zinc-300 font-medium truncate max-w-[150px]">{displayEmail}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-zinc-500">Estado</span>
                 <span className="flex items-center gap-1.5 text-green-500">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  Activo
+                  Local / Activo
                 </span>
               </div>
             </div>
@@ -184,6 +172,28 @@ export default function ProfilePage() {
                   →
                 </div>
               </Link>
+            </div>
+
+            {/* Import Section */}
+            <div className="bg-zinc-900/50 backdrop-blur-md rounded-3xl p-8 border border-white/5 shadow-2xl">
+              <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                <span className="text-primary italic">#</span> Importar desde otra plataforma
+              </h2>
+              <p className="text-zinc-500 text-sm mb-6">
+                Sube un archivo XML (.xml) o Excel (.xlsx) exportado de MyAnimeList, AniList u otra plataforma compatible
+              </p>
+              <ImportButton />
+            </div>
+
+            {/* Sync Covers Section */}
+            <div className="bg-zinc-900/50 backdrop-blur-md rounded-3xl p-8 border border-white/5 shadow-2xl">
+              <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                <span className="text-primary italic">#</span> Recuperar portadas faltantes
+              </h2>
+              <p className="text-zinc-500 text-sm mb-6">
+                Busca automáticamente las portadas de animes que no las tienen (típicamente los importados por XML)
+              </p>
+              <SyncCoversButton />
             </div>
           </div>
         </div>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface JikanImage {
   image_url: string;
   small_image_url: string;
@@ -278,3 +279,123 @@ export const getAnimeEpisodes = async (id: number, page = 1): Promise<JikanRespo
   if (data?.data) return data;
   return { data: [] }; // Graceful degradation
 };
+
+// ─── Related Anime (Prequel / Sequel) ─────────────────────────────────────────
+
+export interface RelatedAnimeItem {
+  malId: number;
+  title: string;
+  imageUrl: string | null;
+  relationType: 'prequel' | 'sequel' | 'recommendation';
+}
+
+/** Fetch prequel/sequel from Jikan; fallback to AniList on failure. */
+export const getAnimeRelations = async (id: number): Promise<RelatedAnimeItem[]> => {
+  const jikanData = await tryJikan<any>(`/anime/${id}/relations`, 86400);
+  if (jikanData?.data) {
+    const filtered = jikanData.data.filter(
+      (r: any) => r.relation === 'Prequel' || r.relation === 'Sequel'
+    );
+    const items: RelatedAnimeItem[] = [];
+    for (const rel of filtered) {
+      for (const entry of rel.entry) {
+        await sleep(400);
+        const detail = await tryJikan<any>(`/anime/${entry.mal_id}`, 86400);
+        items.push({
+          malId: entry.mal_id,
+          title: detail?.data?.title || entry.name || 'Sin título',
+          imageUrl: detail?.data?.images?.jpg?.image_url ?? null,
+          relationType: rel.relation === 'Prequel' ? 'prequel' : 'sequel',
+        });
+      }
+    }
+    return items;
+  }
+
+  // Fallback: AniList
+  return fetchAniListRelations(id);
+};
+
+async function fetchAniListRelations(id: number): Promise<RelatedAnimeItem[]> {
+  const gql = `
+    query ($idMal: Int) {
+      Media(idMal: $idMal, type: ANIME) {
+        relations {
+          edges {
+            relationType
+            node {
+              idMal
+              title { romaji }
+              coverImage { large }
+            }
+          }
+        }
+      }
+    }
+  `;
+  const json = await anilistQuery(gql, { idMal: id });
+  const edges = json?.data?.Media?.relations?.edges;
+  if (!edges) return [];
+
+  return edges
+    .filter(
+      (e: any) => e.relationType === 'PREQUEL' || e.relationType === 'SEQUEL'
+    )
+    .map((e: any) => ({
+      malId: e.node.idMal ?? 0,
+      title: e.node.title?.romaji || 'Sin título',
+      imageUrl: e.node.coverImage?.large ?? null,
+      relationType: e.relationType === 'PREQUEL' ? 'prequel' as const : 'sequel' as const,
+    }));
+}
+
+// ─── Recommendations ──────────────────────────────────────────────────────────
+
+/** Fetch recommendations from Jikan; fallback to AniList on failure. */
+export const getAnimeRecommendations = async (id: number): Promise<RelatedAnimeItem[]> => {
+  const jikanData = await tryJikan<any>(`/anime/${id}/recommendations`, 86400);
+  if (jikanData?.data) {
+    const sorted = [...jikanData.data].sort(
+      (a: any, b: any) => (b.votes || 0) - (a.votes || 0)
+    );
+    return sorted.slice(0, 10).map((r: any) => ({
+      malId: r.entry.mal_id,
+      title: r.entry.title,
+      imageUrl: r.entry.images?.jpg?.image_url ?? null,
+      relationType: 'recommendation' as const,
+    }));
+  }
+
+  // Fallback: AniList
+  return fetchAniListRecommendations(id);
+};
+
+async function fetchAniListRecommendations(id: number): Promise<RelatedAnimeItem[]> {
+  const gql = `
+    query ($idMal: Int) {
+      Media(idMal: $idMal, type: ANIME) {
+        recommendations(sort: RATING_DESC, perPage: 10) {
+          nodes {
+            mediaRecommendation {
+              idMal
+              title { romaji }
+              coverImage { large }
+            }
+          }
+        }
+      }
+    }
+  `;
+  const json = await anilistQuery(gql, { idMal: id });
+  const nodes = json?.data?.Media?.recommendations?.nodes;
+  if (!nodes) return [];
+
+  return nodes
+    .filter((n: any) => n.mediaRecommendation)
+    .map((n: any) => ({
+      malId: n.mediaRecommendation.idMal ?? 0,
+      title: n.mediaRecommendation.title?.romaji || 'Sin título',
+      imageUrl: n.mediaRecommendation.coverImage?.large ?? null,
+      relationType: 'recommendation' as const,
+    }));
+}

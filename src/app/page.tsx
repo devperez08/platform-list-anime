@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import AnimeCard from "@/components/anime/AnimeCard";
-import AnimeDetailsModal from "@/components/anime/AnimeDetailsModal";
 
 import { getTopAnime, JikanAnime } from "@/services/jikan";
 

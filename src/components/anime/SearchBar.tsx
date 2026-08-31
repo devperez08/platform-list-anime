@@ -24,14 +24,15 @@ export default function SearchBar() {
   }, []);
 
   useEffect(() => {
-    if (query.length <= 2) {
-      setResults([]);
-      setIsOpen(false);
-      setError(null);
-      return;
-    }
-
     const timer = setTimeout(async () => {
+      if (query.length <= 2) {
+        setResults([]);
+        setIsOpen(false);
+        setError(null);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
       try {
@@ -44,8 +45,8 @@ export default function SearchBar() {
 
         setResults((json.data ?? []).slice(0, 5));
         setIsOpen(true);
-      } catch (err: any) {
-        setError(err.message || 'Error al buscar. Intenta de nuevo.');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error al buscar. Intenta de nuevo.');
         setResults([]);
         setIsOpen(true);
       } finally {

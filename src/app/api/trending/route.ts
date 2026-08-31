@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 
 const JIKAN_API_BASE = 'https://api.jikan.moe/v4';
@@ -59,8 +60,6 @@ async function fetchAniListTrending(page: number, perPage: number): Promise<any[
     if (!res.ok) return null;
     const json = await res.json();
     const media = json?.data?.Page?.media ?? [];
-    const pageInfo = json?.data?.Page?.pageInfo ?? {};
-
     const normalized = media.map((m: any) => ({
       mal_id: m.idMal ?? m.id,
       title: m.title?.english || m.title?.romaji || 'Sin título',

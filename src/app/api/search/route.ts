@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 
 const JIKAN_API_BASE = 'https://api.jikan.moe/v4';
@@ -128,10 +129,11 @@ export async function GET(request: NextRequest) {
       { data: anilistResults, source: 'anilist' },
       { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
     );
-  } catch (err: any) {
-    console.error('[/api/search] Both APIs failed:', err?.message);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'No se pudo buscar. Intenta de nuevo.';
+    console.error('[/api/search] Both APIs failed:', msg);
     return NextResponse.json(
-      { error: err?.message ?? 'No se pudo buscar. Intenta de nuevo.' },
+      { error: msg },
       { status: 503 }
     );
   }

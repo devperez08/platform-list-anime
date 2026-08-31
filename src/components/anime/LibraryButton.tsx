@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getLibraryItem, addToLibrary, removeFromLibrary, updateLibraryItem, LibraryItem, LibraryStatus } from '@/services/library';
+import { getLibraryItem, addToLibrary, removeFromLibrary, updateLibraryItem, LibraryStatus } from '@/services/library';
 
 interface LibraryButtonProps {
   animeId: number;
@@ -18,24 +18,22 @@ export default function LibraryButton({ animeId, title, imageUrl, initialStatus 
   const [status, setStatus] = useState<LibraryStatus>(initialStatus || 'plan_to_watch');
 
   useEffect(() => {
-    if (!initialStatus) {
-      checkLibraryStatus();
-    }
-  }, [animeId, initialStatus]);
-
-  const checkLibraryStatus = async () => {
-    try {
-      const item = await getLibraryItem(animeId);
-      if (item) {
-        setIsInLibrary(true);
-        setStatus(item.status);
-      } else {
-        setIsInLibrary(false);
+    if (initialStatus) return;
+    const checkLibraryStatus = async () => {
+      try {
+        const item = await getLibraryItem(animeId);
+        if (item) {
+          setIsInLibrary(true);
+          setStatus(item.status);
+        } else {
+          setIsInLibrary(false);
+        }
+      } catch (error) {
+        console.error('Error checking library status:', error);
       }
-    } catch (error) {
-      console.error('Error checking library status:', error);
-    }
-  };
+    };
+    checkLibraryStatus();
+  }, [animeId, initialStatus]);
 
   const handleLibraryAction = async (newStatus?: LibraryStatus) => {
     setIsLoading(true);
@@ -50,24 +48,22 @@ export default function LibraryButton({ animeId, title, imageUrl, initialStatus 
         setStatus(newStatus);
       } else {
         // Add new item (either main button + default status or dropdown selection)
-        const item: LibraryItem = {
+        const item: Parameters<typeof addToLibrary>[0] = {
           anime_id_jikan: animeId,
           title: title,
           image_url: imageUrl,
           status: newStatus || status,
+          episodes_watched: 0,
         };
         await addToLibrary(item);
         setIsInLibrary(true);
         if (newStatus) setStatus(newStatus);
       }
       router.refresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Library action error:', error);
-      if (error.message?.includes('logged in')) {
-        alert('Debes iniciar sesión para guardar animes en tu lista.');
-      } else {
-        alert('Error al actualizar tu lista: ' + (error.message || 'Ocurrió un problema inesperado.'));
-      }
+      const msg = error instanceof Error ? error.message : 'Ocurrió un problema inesperado.';
+      alert('Error al actualizar tu lista: ' + msg);
     } finally {
       setIsLoading(false);
     }

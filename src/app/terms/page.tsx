@@ -110,7 +110,7 @@ export default function TermsPage() {
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold">1</div>
                     <div>
                       <h4 className="text-white font-bold">Datos de Registro</h4>
-                      <p className="text-sm text-zinc-500">Email e ID de usuario gestionados de forma segura a través de Supabase Auth.</p>
+                      <p className="text-sm text-zinc-500">Datos gestionados localmente en SQLite. No se requiere autenticación externa.</p>
                     </div>
                   </div>
                   <div className="flex gap-4 items-start">
@@ -156,7 +156,7 @@ export default function TermsPage() {
                 Compartimos datos estrictamente con proveedores esenciales:
               </p>
               <ul className="space-y-3 font-medium text-sm">
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span> Infraestructura y Base de Datos (Supabase)</li>
+                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span> Base de Datos Local (SQLite)</li>
                 <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span> Hosting y Analíticas (Vercel)</li>
                 <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span> Datos de Anime (API Jikan - MyAnimeList)</li>
               </ul>

@@ -1,33 +1,18 @@
 
 import React, { Suspense } from 'react';
-import { getAnimeById, getAnimeCharacters, getTopAnime, getAnimeEpisodes } from '@/services/jikan';
+import { getAnimeById, getAnimeCharacters, getAnimeEpisodes, getAnimeRelations, getAnimeRecommendations } from '@/services/jikan';
+import type { RelatedAnimeItem } from '@/services/jikan';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import LibraryButton from '@/components/anime/LibraryButton';
+import FavoriteButton from '@/components/anime/FavoriteButton';
 import EpisodeList from '@/components/anime/EpisodeList';
-import { createClient } from '@/utils/supabase/server';
+import RelatedAnimeCarousel from '@/components/anime/RelatedAnimeCarousel';
+import { db } from '@/lib/db';
+import type { LibraryItem } from '@/services/library';
 
 interface AnimePageProps {
   params: Promise<{ id: string }>;
-}
-
-export async function generateStaticParams() {
-  try {
-    // Fetch top 50 anime to pre-render (2 pages of 25)
-    const [page1, page2] = await Promise.all([
-      getTopAnime(1).catch(() => ({ data: [] })),
-      getTopAnime(2).catch(() => ({ data: [] }))
-    ]);
-    
-    const allTop = [...(page1?.data || []), ...(page2?.data || [])];
-    
-    return allTop.map((anime) => ({
-      id: anime.mal_id.toString(),
-    }));
-  } catch (error) {
-    console.error('Error in generateStaticParams:', error);
-    return [];
-  }
 }
 
 export async function generateMetadata({ params }: AnimePageProps): Promise<Metadata> {
@@ -38,7 +23,7 @@ export async function generateMetadata({ params }: AnimePageProps): Promise<Meta
       title: `${res.data.title} - EpiNeko`,
       description: res.data.synopsis?.slice(0, 160),
     };
-  } catch (error) {
+  } catch {
     return {
       title: 'Anime Details - EpiNeko',
     };
@@ -50,10 +35,12 @@ export default async function AnimePage({ params }: AnimePageProps) {
   const animeId = parseInt(id);
   
   // Fetch anime data from Jikan (server-side, cached by Next.js)
-  const [animeRes, charactersRes, episodesRes] = await Promise.all([
+  const [animeRes, charactersRes, episodesRes, relations, recommendations] = await Promise.all([
     getAnimeById(animeId),
     getAnimeCharacters(animeId),
-    getAnimeEpisodes(animeId)
+    getAnimeEpisodes(animeId),
+    getAnimeRelations(animeId).catch(() => [] as RelatedAnimeItem[]),
+    getAnimeRecommendations(animeId).catch(() => [] as RelatedAnimeItem[]),
   ]);
 
   const anime = animeRes?.data;
@@ -70,23 +57,13 @@ export default async function AnimePage({ params }: AnimePageProps) {
     );
   }
 
-  // Try to get library status if user is logged in (server-side check)
-  let libraryItem = null;
+  // Try to get library status from local SQLite
+  let libraryItem: LibraryItem | null = null;
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-      const { data } = await supabase
-        .from('user_library')
-        .select('*')
-        .match({ user_id: user.id, anime_id_jikan: animeId })
-        .single();
-      libraryItem = data;
-    }
+    const data = db.prepare<[number], LibraryItem>('SELECT * FROM user_library WHERE anime_id_jikan = ?').get(animeId);
+    libraryItem = data ?? null;
   } catch (error) {
-    // Graceful failure if auth/db fails - components will fallback to client-side checks
-    console.error('Error fetching server-side library status:', error);
+    console.error('Error fetching server-side library status from SQLite:', error);
   }
 
   return (
@@ -134,6 +111,13 @@ export default async function AnimePage({ params }: AnimePageProps) {
               )}
 
               <div className="flex flex-wrap gap-4 mt-8">
+                <Suspense fallback={<div className="h-14 w-14 bg-zinc-900 animate-pulse rounded-full" />}>
+                  <FavoriteButton
+                    animeId={anime.mal_id}
+                    initialIsFavorite={libraryItem?.is_favorite === 1}
+                    size="lg"
+                  />
+                </Suspense>
                 <Suspense fallback={<div className="h-14 w-full bg-zinc-900 animate-pulse rounded-full" />}>
                   <LibraryButton 
                     animeId={anime.mal_id} 
@@ -234,6 +218,12 @@ export default async function AnimePage({ params }: AnimePageProps) {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Related Anime Carousels */}
+      <section className="container mx-auto px-6 pb-20">
+        <RelatedAnimeCarousel title="Temporadas Relacionadas" items={relations} />
+        <RelatedAnimeCarousel title="Recomendados para ti" items={recommendations} />
       </section>
     </div>
   );

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import AnimeCard from "@/components/anime/AnimeCard";
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -174,8 +173,8 @@ export default function TrendingPage() {
         const newData = Array.isArray(json.data) ? json.data : [];
         setAnimes((prev) => (reset ? newData : [...prev, ...newData]));
         setHasNextPage(json.pagination?.has_next_page ?? false);
-      } catch (err: any) {
-        setError(err.message ?? "No se pudieron cargar los animes.");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "No se pudieron cargar los animes.");
       } finally {
         setIsLoading(false);
         setIsLoadingMore(false);
@@ -186,9 +185,9 @@ export default function TrendingPage() {
 
   // Re-fetch when filters change
   useEffect(() => {
-    setPage(1);
+    setPage(1); // eslint-disable-line react-hooks/set-state-in-effect
     fetchAnimes(1, true);
-  }, [typeFilter, sortFilter]);
+  }, [typeFilter, sortFilter, fetchAnimes]);
 
   const handleLoadMore = () => {
     const nextPage = page + 1;

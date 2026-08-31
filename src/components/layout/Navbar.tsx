@@ -2,15 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { type User } from "@supabase/supabase-js";
-import { signOut } from "@/app/login/actions";
+import { type UserProfile } from "@/services/profile";
 import SearchBar from "@/components/anime/SearchBar";
 
 interface NavbarProps {
-  user: User | null;
+  profile: UserProfile | null;
 }
 
-export default function Navbar({ user }: NavbarProps) {
+export default function Navbar({ profile }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -62,15 +61,13 @@ export default function Navbar({ user }: NavbarProps) {
             Tendencias
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
           </Link>
-          {user && (
-            <Link
-              href="/library"
-              className="text-[10px] font-black text-zinc-300 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
-            >
-              Mi Lista
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
-            </Link>
-          )}
+          <Link
+            href="/library"
+            className="text-[10px] font-black text-zinc-300 hover:text-white transition-all uppercase tracking-[0.2em] relative group"
+          >
+            Mi Lista
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
+          </Link>
         </div>
 
         {/* SearchBar — visible on all devices, grows to fill space */}
@@ -80,52 +77,41 @@ export default function Navbar({ user }: NavbarProps) {
 
         {/* User Actions */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          {user ? (
-            <div className="dropdown dropdown-end">
-              <div
-                tabIndex={0}
-                role="button"
-                className="btn btn-ghost btn-circle avatar border border-white/5 hover:border-primary/50 transition-all p-0.5"
-              >
-                <div className="bg-zinc-800 text-white rounded-full w-full h-full flex items-center justify-center overflow-hidden border border-white/5">
+          <div className="dropdown dropdown-end">
+            <div
+              tabIndex={0}
+              role="button"
+              className="btn btn-ghost btn-circle avatar border border-white/5 hover:border-primary/50 transition-all p-0.5"
+            >
+              <div className="bg-zinc-800 text-white rounded-full w-full h-full flex items-center justify-center overflow-hidden border border-white/5">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt={profile.full_name || profile.username} className="w-full h-full object-cover" />
+                ) : (
                   <span className="text-xs font-black italic">
-                    {(user.user_metadata?.username || user.user_metadata?.full_name || user.email)?.charAt(0).toUpperCase()}
+                    {(profile?.username || profile?.full_name || 'U').charAt(0).toUpperCase()}
                   </span>
-                </div>
+                )}
               </div>
-              <ul
-                tabIndex={0}
-                className="mt-4 z-[110] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.8)] menu menu-sm dropdown-content bg-zinc-900 border border-white/10 rounded-2xl w-60 text-white animate-in fade-in slide-in-from-top-2 duration-200"
-              >
-                <li className="menu-title px-4 py-2 text-zinc-500 text-[10px] uppercase tracking-widest font-black">Cuenta</li>
-                <li>
-                  <Link href="/profile" className="flex items-center gap-3 py-3 hover:bg-white/5 rounded-xl transition-colors group">
-                    <span className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-primary/20 group-hover:text-primary transition-colors">👤</span>
-                    <span className="font-bold">Perfil</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/settings" className="flex items-center gap-3 py-3 hover:bg-white/5 rounded-xl transition-colors group">
-                    <span className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-primary/20 group-hover:text-primary transition-colors">⚙️</span>
-                    <span className="font-bold">Ajustes</span>
-                  </Link>
-                </li>
-                <div className="h-px bg-white/5 my-2 mx-2"></div>
-                <li>
-                  <form action={signOut} className="w-full">
-                    <button type="submit" className="w-full flex items-center gap-3 py-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors font-bold">
-                      <span className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">🚪</span>
-                      Cerrar Sesión
-                    </button>
-                  </form>
-                </li>
-              </ul>
             </div>
-          ) : (
-            <Link href="/login" className="btn btn-primary btn-sm rounded-full px-6 font-black italic tracking-tighter shadow-lg shadow-primary/20 text-white">
-              LOGIN
-            </Link>
-          )}
+            <ul
+              tabIndex={0}
+              className="mt-4 z-[110] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.8)] menu menu-sm dropdown-content bg-zinc-900 border border-white/10 rounded-2xl w-60 text-white animate-in fade-in slide-in-from-top-2 duration-200"
+            >
+              <li className="menu-title px-4 py-2 text-zinc-500 text-[10px] uppercase tracking-widest font-black">Cuenta Local</li>
+              <li>
+                <Link href="/profile" className="flex items-center gap-3 py-3 hover:bg-white/5 rounded-xl transition-colors group">
+                  <span className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-primary/20 group-hover:text-primary transition-colors">👤</span>
+                  <span className="font-bold">Perfil</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/settings" className="flex items-center gap-3 py-3 hover:bg-white/5 rounded-xl transition-colors group">
+                  <span className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-primary/20 group-hover:text-primary transition-colors">⚙️</span>
+                  <span className="font-bold">Ajustes</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </nav>

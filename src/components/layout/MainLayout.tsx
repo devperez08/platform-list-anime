@@ -2,20 +2,19 @@
 import React from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import { createClient } from '@/utils/supabase/server';
+import { getProfile } from '@/services/profile';
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 export default async function MainLayout({ children }: MainLayoutProps) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const profile = await getProfile();
 
   return (
     <div className="flex flex-col min-h-screen">
       <header>
-        <Navbar user={user} />
+        <Navbar profile={profile} />
       </header>
       <main className="flex-grow">
         {/* Navbar is fixed. Pages should manage their own top padding or hero section */}

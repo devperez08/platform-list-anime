@@ -1,28 +1,32 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { getLibrary, LibraryItem } from '@/services/library';
 import AnimeCard from '@/components/anime/AnimeCard';
+import FilterBar from '@/components/library/FilterBar';
 import Link from 'next/link';
-import { getAnimeById } from '@/services/jikan';
 
-export default function LibraryPage() {
+function LibraryContent() {
+  const searchParams = useSearchParams();
+  const activeFilter = searchParams.get('filter') || 'all';
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    fetchLibrary();
-  }, []);
 
-  const fetchLibrary = async () => {
-    try {
-      const data = await getLibrary();
-      setItems(data);
-    } catch (error) {
-      console.error('Error fetching library:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchLibrary = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getLibrary(activeFilter);
+        setItems(data);
+      } catch (error) {
+        console.error('Error fetching library:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchLibrary();
+  }, [activeFilter]);
 
   return (
     <main className="min-h-screen bg-zinc-950 pt-32 pb-20">
@@ -34,6 +38,10 @@ export default function LibraryPage() {
           </h1>
         </div>
 
+        <div className="mb-8">
+          <FilterBar activeFilter={activeFilter} />
+        </div>
+
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             {Array.from({ length: 12 }).map((_, i) => (
@@ -43,12 +51,13 @@ export default function LibraryPage() {
         ) : items.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             {items.map((item) => (
-              <Link key={item.anime_id_jikan} href={`/anime/${item.anime_id_jikan}`}>
+              <Link key={item.id} href={item.anime_id_jikan ? `/anime/${item.anime_id_jikan}` : '#'}>
                 <AnimeCard 
-                  mal_id={item.anime_id_jikan}
+                  mal_id={item.anime_id_jikan ?? 0}
                   image={item.image_url || ''}
                   title={item.title}
                   score={item.score?.toString()}
+                  is_favorite={item.is_favorite === 1}
                 />
               </Link>
             ))}
@@ -64,12 +73,30 @@ export default function LibraryPage() {
             <p className="text-zinc-500 max-w-md mb-8">
               Explora nuevos animes y añádalos a tu lista para hacer un seguimiento de lo que estás viendo.
             </p>
-            <a href="/" className="btn btn-primary rounded-full px-8 font-bold">
+            <Link href="/" className="btn btn-primary rounded-full px-8 font-bold">
               Explorar Animes
-            </a>
+            </Link>
           </div>
         )}
       </div>
     </main>
+  );
+}
+
+export default function LibraryPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-zinc-950 pt-32 pb-20">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="aspect-[2/3] bg-zinc-900 animate-pulse rounded-2xl" />
+            ))}
+          </div>
+        </div>
+      </main>
+    }>
+      <LibraryContent />
+    </Suspense>
   );
 }

@@ -1,81 +1,56 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
-import { type User } from '@supabase/supabase-js';
+import { getProfile, updateProfile } from '@/services/profile';
 import Link from 'next/link';
 
 export default function SettingsPage() {
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   
-  // Profile fields
+  // Profile fields (only those stored in schema: username, full_name, avatar_url)
   const [fullname, setFullname] = useState('');
   const [username, setUsername] = useState('');
-  const [website, setWebsite] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
 
-  const supabase = createClient();
-
   useEffect(() => {
-    async function getProfile() {
+    async function loadProfile() {
       try {
         setLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (user) {
-          setUser(user);
-          const { data, error, status } = await supabase
-            .from('profiles')
-            .select(`full_name, username, website, avatar_url`)
-            .eq('id', user.id)
-            .single();
-
-          if (error && status !== 406) {
-            throw error;
-          }
-
-          if (data) {
-            setFullname(data.full_name || '');
-            setUsername(data.username || '');
-            setWebsite(data.website || '');
-            setAvatarUrl(data.avatar_url || '');
-          }
+        const data = await getProfile();
+        if (data) {
+          setFullname(data.full_name || '');
+          setUsername(data.username || '');
+          setAvatarUrl(data.avatar_url || '');
         }
       } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error('Error loading user profile:', error);
       } finally {
         setLoading(false);
       }
     }
 
-    getProfile();
+    loadProfile();
   }, []);
 
-  async function updateProfile() {
+  async function handleSave() {
     try {
       setSaving(true);
       setMessage({ type: '', text: '' });
 
-      const { data: { user } } = await supabase.auth.getUser();
-
       const updates = {
-        id: user?.id,
         full_name: fullname,
         username,
-        website,
         avatar_url: avatarUrl,
-        updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase.from('profiles').upsert(updates);
+      await updateProfile(updates);
 
-      if (error) throw error;
       setMessage({ type: 'success', text: '¡Perfil actualizado correctamente!' });
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Error al actualizar el perfil' });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Error al actualizar el perfil';
+      setMessage({ type: 'error', text: msg });
     } finally {
       setSaving(false);
     }
@@ -89,15 +64,6 @@ export default function SettingsPage() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold text-white mb-4">Debes iniciar sesión para acceder a ajustes</h2>
-        <Link href="/login" className="btn btn-primary px-8">Iniciar Sesión</Link>
-      </div>
-    );
-  }
-
   return (
     <main className="min-h-screen bg-zinc-950 pt-32 pb-20">
       <div className="container mx-auto px-4 max-w-3xl">
@@ -106,7 +72,7 @@ export default function SettingsPage() {
              <span className="group-hover:-translate-x-1 transition-transform text-primary">←</span> Volver al perfil
           </Link>
           <h1 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter">AJUSTES DE CUENTA</h1>
-          <p className="text-zinc-500 mt-2">Personaliza tu experiencia en EpiNeko</p>
+          <p className="text-zinc-500 mt-2">Personaliza tu experiencia local en EpiNeko</p>
         </div>
 
         <div className="space-y-6">
@@ -126,28 +92,58 @@ export default function SettingsPage() {
                   onChange={(e) => setUsername(e.target.value)}
                 />
                 <label className="label">
-                  <span className="label-text-alt text-zinc-500 italic">Este es tu identificador público único.</span>
+                  <span className="label-text-alt text-zinc-500 italic">Este es tu identificador local único. Mínimo 3 caracteres.</span>
+                </label>
+              </div>
+
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text text-zinc-400 font-bold uppercase tracking-widest text-xs">Nombre Completo</span>
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="Tu Nombre" 
+                  className="input input-bordered bg-zinc-950 border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary rounded-xl" 
+                  value={fullname}
+                  onChange={(e) => setFullname(e.target.value)}
+                />
+              </div>
+
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text text-zinc-400 font-bold uppercase tracking-widest text-xs">URL del Avatar</span>
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="https://ejemplo.com/foto.jpg" 
+                  className="input input-bordered bg-zinc-950 border-white/10 text-white focus:border-primary focus:ring-1 focus:ring-primary rounded-xl" 
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                />
+                <label className="label">
+                  <span className="label-text-alt text-zinc-500 italic">URL pública de tu imagen de perfil.</span>
                 </label>
               </div>
             </div>
           </section>
 
+          {/* Local system info — read-only */}
           <section className="bg-zinc-900/50 backdrop-blur-md rounded-3xl p-8 border border-white/5 shadow-xl">
-            <h2 className="text-xl font-bold text-white mb-6">Seguridad</h2>
-            <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text text-zinc-400 font-bold uppercase tracking-widest text-xs">Correo Electrónico</span>
-                </label>
-                <input 
-                  type="email" 
-                  disabled
-                  className="input input-bordered bg-zinc-950/50 border-white/5 text-zinc-500 rounded-xl cursor-not-allowed" 
-                  value={user.email}
-                />
-                <label className="label">
-                  <span className="label-text-alt text-zinc-600 italic">El correo no puede ser modificado actualmente.</span>
-                </label>
+            <h2 className="text-xl font-bold text-white mb-6">Info del Sistema</h2>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Modo</span>
+                <span className="text-green-400 font-bold">🟢 Local / Offline</span>
               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Base de datos</span>
+                <span className="text-zinc-300 font-mono text-xs">anime-tracking.db (SQLite)</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Auth</span>
+                <span className="text-zinc-400 italic text-xs">Sin autenticación (usuario único)</span>
+              </div>
+            </div>
           </section>
 
           {message.text && (
@@ -159,7 +155,7 @@ export default function SettingsPage() {
 
           <div className="flex justify-end gap-4 mt-10">
              <button 
-              onClick={updateProfile}
+              onClick={handleSave}
               disabled={saving}
               className="btn btn-primary btn-lg px-16 rounded-full font-black italic shadow-2xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-white uppercase tracking-widest border-2 border-white/10"
              >

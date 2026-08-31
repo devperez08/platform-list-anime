@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAnimeEpisodes, JikanEpisode } from '@/services/jikan';
-import { getLibraryItem, updateLibraryItem, addToLibrary, LibraryItem, LibraryStatus } from '@/services/library';
+import { getLibraryItem, updateLibraryItem, addToLibrary, LibraryStatus } from '@/services/library';
 
 interface EpisodeListProps {
   animeId: number;
@@ -39,12 +39,9 @@ export default function EpisodeList({
       }
 
       try {
-        const promises: [Promise<any>, Promise<any>] = [
-          episodes.length === 0 ? getAnimeEpisodes(animeId) : Promise.resolve({ data: episodes }),
-          getLibraryItem(animeId)
-        ];
-        
-        const [epRes, libItem] = await Promise.all(promises);
+        const epPromise = episodes.length === 0 ? getAnimeEpisodes(animeId) : Promise.resolve({ data: episodes });
+        const libPromise = getLibraryItem(animeId);
+        const [epRes, libItem] = await Promise.all([epPromise, libPromise]);
         
         if (episodes.length === 0) setEpisodes(epRes.data || []);
         
@@ -75,7 +72,7 @@ export default function EpisodeList({
 
     try {
       if (isAdding) {
-        const item: LibraryItem = {
+        const item: Parameters<typeof addToLibrary>[0] = {
           anime_id_jikan: animeId,
           title: title,
           image_url: imageUrl,
@@ -90,17 +87,14 @@ export default function EpisodeList({
         });
       }
       router.refresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating progress:', error);
       // Revert if error
       setWatchedCount(watchedCount);
       if (isAdding) setIsInLibrary(false);
       
-      if (error.message?.includes('logged in')) {
-        alert('Debes iniciar sesión para marcar episodios como vistos.');
-      } else {
-        alert('Error al actualizar progreso: ' + (error.message || 'Ocurrió un problema inesperado.'));
-      }
+      const msg = error instanceof Error ? error.message : 'Ocurrió un problema inesperado.';
+      alert('Error al actualizar progreso: ' + msg);
     }
   };
 
